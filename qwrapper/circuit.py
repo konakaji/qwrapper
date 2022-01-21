@@ -216,11 +216,11 @@ class QiskitCircuit(QWrapper):
         while True:
             samples = self._do_get_samples(nshot)
             for sample in samples:
-                adopt = False
+                adopt = True
                 for k, v in self.post_selects.items():
                     print(sample)
-                    if sample[self.n_qubit - k - 1] == v:
-                        adopt = True
+                    if sample[self.n_qubit - k - 1] != v:
+                        adopt = False
                 if not adopt:
                     continue
                 results.append(sample)
