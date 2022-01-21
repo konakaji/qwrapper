@@ -2,7 +2,9 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit import Aer
 from qiskit import execute
 from qulacs import QuantumState, QuantumCircuit as QCircuit
+from qulacs.gate import Measurement
 from abc import ABC, abstractmethod
+import random
 
 
 class Const:
@@ -11,6 +13,9 @@ class Const:
 
 
 class QWrapper(ABC):
+    def cx(self, c_index, t_index):
+        return self.cnot(c_index, t_index)
+
     @abstractmethod
     def h(self, index):
         pass
@@ -60,7 +65,15 @@ class QWrapper(ABC):
         pass
 
     @abstractmethod
+    def get_samples(self, nshot):
+        pass
+
+    @abstractmethod
     def get_counts(self, nshot):
+        pass
+
+    @abstractmethod
+    def post_select(self, target, index):
         pass
 
     @abstractmethod
@@ -110,6 +123,11 @@ class QulacsCircuit(QWrapper):
     def draw(self, output="mpl"):
         pass
 
+    def get_samples(self, nshot):
+        rs = []
+        for b, v in self.get_counts(nshot).items():
+            rs.append([b for _ in range(v)])
+
     def get_counts(self, nshot):
         self.circuit.update_quantum_state(self.state)
         r = {}
@@ -124,6 +142,9 @@ class QulacsCircuit(QWrapper):
     def get_state_vector(self):
         self.circuit.update_quantum_state(self.state)
         return self.state.get_vector()
+
+    def post_select(self, index, value):
+        self.circuit.add_gate(Measurement(value, index))
 
     @classmethod
     def _get_bin(cls, x, n=0):
@@ -146,8 +167,10 @@ class QulacsCircuit(QWrapper):
 
 class QiskitCircuit(QWrapper):
     def __init__(self, nqubit):
+        self.n_qubit = nqubit
         self._qr = QuantumRegister(nqubit)
-        self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
+        self.qc = QuantumCircuit(self._qr)
+        self.post_selects = {}
 
     def h(self, index):
         self.qc.h(index)
@@ -176,6 +199,9 @@ class QiskitCircuit(QWrapper):
     def measure_all(self):
         self.qc.measure_all()
 
+    def post_select(self, target, index: int):
+        self.post_selects[index] = str(target)
+
     def get_q_register(self):
         return self._qr
 
@@ -185,10 +211,36 @@ class QiskitCircuit(QWrapper):
     def draw(self, output="mpl"):
         self.qc.draw(output)
 
+    def get_samples(self, nshot):
+        results = []
+        while True:
+            job = execute(self.qc, backend=Const.simulator, shots=nshot)
+            result = job.result()
+            samples = []
+            for k, c in result.items():
+                samples.append([k for _ in range(c)])
+            random.shuffle(samples)
+            for sample in samples:
+                adopt = False
+                for k, v in self.post_selects:
+                    if sample[self.n_qubit - k - 1] == v:
+                        adopt = True
+                if not adopt:
+                    continue
+                results.append(sample)
+                if len(results) == nshot:
+                    return results
+
     def get_counts(self, nshot):
-        job = execute(self.qc, backend=Const.simulator, shots=nshot)
-        result = job.result()
-        return result.get_counts(self.qc)
+        if len(self.post_selects) == 0:
+            job = execute(self.qc, backend=Const.simulator, shots=nshot)
+            return job.result()
+        counter = {}
+        for sample in self.get_samples(nshot):
+            if sample not in counter:
+                counter[sample] = 0
+            counter[sample] = counter[sample] + 1
+        return counter
 
     def get_state_vector(self):
         job = execute(self.qc, backend=Const.s_simulator)
