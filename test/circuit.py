@@ -16,7 +16,8 @@ def compare():
     qu.post_select(0, 1)
     qi.measure_all()
     qu.measure_all()
-
+    qi.get_counts(100)
+    qu.get_samples(100)
     print("{}, {}".format(qi.get_counts(1000), qu.get_counts(1000)))
 
 

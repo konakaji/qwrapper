@@ -7,14 +7,6 @@ from abc import ABC, abstractmethod
 import random
 
 
-class Future:
-    def __init__(self, func):
-        self.func = func
-
-    def get(self):
-        return self.func()
-
-
 class Const:
     simulator = Aer.get_backend('qasm_simulator')
     s_simulator = Aer.get_backend('statevector_simulator')
@@ -23,12 +15,6 @@ class Const:
 class QWrapper(ABC):
     def cx(self, c_index, t_index):
         return self.cnot(c_index, t_index)
-
-    def get_samples_async(self, nshot) -> Future:
-        def f():
-            return self.get_samples(nshot)
-
-        return Future(f)
 
     @abstractmethod
     def h(self, index):
@@ -186,15 +172,6 @@ class QiskitCircuit(QWrapper):
         self.qc = QuantumCircuit(self._qr)
         self.post_selects = {}
 
-    def get_samples_async(self, nshot) -> Future:
-        if len(self.post_selects) > 0:
-            return super().get_samples_async(nshot)
-
-        def f():
-            return self._do_get_samples(nshot)
-
-        return Future(f)
-
     def h(self, index):
         self.qc.h(index)
 
@@ -240,7 +217,8 @@ class QiskitCircuit(QWrapper):
             samples = self._do_get_samples(nshot)
             for sample in samples:
                 adopt = False
-                for k, v in self.post_selects:
+                for k, v in self.post_selects.items():
+                    print(sample)
                     if sample[self.n_qubit - k - 1] == v:
                         adopt = True
                 if not adopt:
@@ -253,8 +231,8 @@ class QiskitCircuit(QWrapper):
         job = execute(self.qc, backend=Const.simulator, shots=nshot)
         result = job.result()
         samples = []
-        for k, c in result.items():
-            samples.append([k for _ in range(c)])
+        for k, c in result.get_counts().items():
+            samples.extend([k for _ in range(c)])
         random.shuffle(samples)
         return samples
 
