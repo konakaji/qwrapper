@@ -1,4 +1,4 @@
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit import Aer
 from qiskit import execute
 from qulacs import QuantumState, QuantumCircuit as QCircuit
@@ -25,6 +25,10 @@ class QWrapper(ABC):
 
     @abstractmethod
     def z(self, index):
+        pass
+
+    @abstractmethod
+    def get_q_register(self):
         pass
 
     @abstractmethod
@@ -94,6 +98,9 @@ class QulacsCircuit(QWrapper):
     def cnot(self, c_index, t_index):
         self.circuit.add_CNOT_gate(c_index, t_index)
 
+    def get_q_register(self):
+        return None
+
     def measure_all(self):
         pass
 
@@ -139,7 +146,8 @@ class QulacsCircuit(QWrapper):
 
 class QiskitCircuit(QWrapper):
     def __init__(self, nqubit):
-        self.qc = QuantumCircuit(nqubit)
+        self._qr = QuantumRegister(nqubit)
+        self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
 
     def h(self, index):
         self.qc.h(index)
@@ -167,6 +175,9 @@ class QiskitCircuit(QWrapper):
 
     def measure_all(self):
         self.qc.measure_all()
+
+    def get_q_register(self):
+        return self._qr
 
     def barrier(self):
         self.qc.barrier()
