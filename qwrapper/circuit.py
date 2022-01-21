@@ -228,6 +228,7 @@ class QiskitCircuit(QWrapper):
                     return results
 
     def _do_get_samples(self, nshot):
+        self.qc.measure_all()
         job = execute(self.qc, backend=Const.simulator, shots=nshot)
         result = job.result()
         samples = []
