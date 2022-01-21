@@ -12,12 +12,12 @@ def compare():
     qu.rx(0.5, 1)
     qi.rx(0.5, 2)
     qu.rx(0.5, 2)
-    qi.post_select(0, 1)
-    qu.post_select(0, 1)
-    qi.measure_all()
-    qu.measure_all()
-    qi.get_counts(100)
-    qu.get_samples(100)
+    # qi.post_select(0, 1)
+    # qu.post_select(0, 1)
+    f = qi.get_async_samples(100)
+    f2 = qu.get_async_samples(100)
+    print(f.get())
+    print(f2.get())
     print("{}, {}".format(qi.get_counts(1000), qu.get_counts(1000)))
 
 
