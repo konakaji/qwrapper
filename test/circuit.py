@@ -14,6 +14,10 @@ def compare():
     qu.rx(0.5, 2)
     # qi.post_select(0, 1)
     # qu.post_select(0, 1)
+    r = 0
+    for v in qu.get_state_vector():
+        r = r + v * v.conjugate()
+    print(r)
     f = qi.get_async_samples(100)
     f2 = qu.get_async_samples(100)
     print(f.get())

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="qwrapper",
-    version="0.0.9",
+    version="0.0.10",
     author="kouhei nakaji",
     author_email="nakajijiji@gmail.com",
     description="You can receive the message 'Hello!!!'",
@@ -19,8 +19,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "qiskit~=0.29.1",
-        "Qulacs~=0.3.0"
+        "qiskit>=0.29.0",
+        "Qulacs>=0.3.0"
     ],
     python_requires='>=3.7',
 )
