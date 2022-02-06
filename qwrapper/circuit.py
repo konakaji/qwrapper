@@ -4,7 +4,8 @@ from qiskit import execute
 from qulacs import QuantumState, QuantumCircuit as QCircuit
 from qulacs.gate import Measurement
 from abc import ABC, abstractmethod
-import random
+from qwrapper.encoder import Encoder
+import random, math
 
 
 def from_bitstring(str):
@@ -99,11 +100,36 @@ class QWrapper(ABC):
     def get_state_vector(self):
         pass
 
+    @classmethod
+    def execute_post_selects(cls, vector, post_selects, n_qubit):
+        for index, bit in sorted(post_selects.items(), key=lambda item: item[0], reverse=True):
+            vector = cls.execute_post_select(vector, index, bit, n_qubit)
+        return vector
+
+    @classmethod
+    def execute_post_select(cls, state_vector, i, bit, n_qubit):
+        results = []
+        encoder = Encoder(n_qubit)
+        norm = 0
+        for num, amplitude in enumerate(state_vector):
+            array = encoder.encode(num)
+            if array[i] != int(bit):
+                results.append(0)
+                continue
+            results.append(amplitude)
+            norm = norm + amplitude * amplitude.conjugate()
+        finals = []
+        norm = math.sqrt(abs(norm))
+        for r in results:
+            finals.append(r / norm)
+        return finals
+
 
 class QulacsCircuit(QWrapper):
     def __init__(self, nqubit):
         self.nqubit = nqubit
         self.circuit = QCircuit(nqubit)
+        self.post_selects = {}
 
     def h(self, index):
         self.circuit.add_H_gate(index)
@@ -171,10 +197,10 @@ class QulacsCircuit(QWrapper):
         state = QuantumState(self.nqubit)
         state.set_zero_state()
         self.circuit.update_quantum_state(state)
-        return state.get_vector()
+        return self.execute_post_selects(state.get_vector(), self.post_selects, self.nqubit)
 
     def post_select(self, index, value):
-        self.circuit.add_gate(Measurement(value, index))
+        self.post_selects[self.nqubit - index - 1] = value
 
     @classmethod
     def _get_bin(cls, x, n=0):
@@ -197,9 +223,10 @@ class QulacsCircuit(QWrapper):
 
 class QiskitCircuit(QWrapper):
     def __init__(self, nqubit):
-        self.n_qubit = nqubit
+        self.nqubit = nqubit
         self._qr = QuantumRegister(nqubit)
         self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
+        self.encoder = Encoder(self.nqubit)
         self.post_selects = {}
 
     def h(self, index):
@@ -215,13 +242,13 @@ class QiskitCircuit(QWrapper):
         self.qc.z(index)
 
     def rx(self, theta, index):
-        self.qc.rx(theta, index)
+        self.qc.rx(-theta, index)
 
     def ry(self, theta, index):
-        self.qc.ry(theta, index)
+        self.qc.ry(-theta, index)
 
     def rz(self, theta, index):
-        self.qc.rz(theta, index)
+        self.qc.rz(-theta, index)
 
     def cnot(self, c_index, t_index):
         self.qc.cnot(c_index, t_index)
@@ -229,8 +256,8 @@ class QiskitCircuit(QWrapper):
     def measure_all(self):
         self.qc.measure_all()
 
-    def post_select(self, target, index: int):
-        self.post_selects[index] = str(target)
+    def post_select(self, index: int, target):
+        self.post_selects[self.nqubit - index - 1] = str(target)
 
     def get_q_register(self):
         return self._qr
@@ -261,7 +288,7 @@ class QiskitCircuit(QWrapper):
             for sample in samples:
                 adopt = True
                 for k, v in self.post_selects.items():
-                    if sample[self.n_qubit - k - 1] != v:
+                    if sample[self.nqubit - k - 1] != v:
                         adopt = False
                 if not adopt:
                     continue
@@ -280,7 +307,11 @@ class QiskitCircuit(QWrapper):
 
     def get_state_vector(self):
         job = execute(self.qc, backend=Const.s_simulator)
-        return job.result().get_statevector()
+        vector = job.result().get_statevector()
+        array = []
+        for v in vector:
+            array.append(v)
+        return self.execute_post_selects(array, self.post_selects, self.nqubit)
 
     def _do_get_samples(self, nshot):
         self.qc.measure_all(add_bits=False)

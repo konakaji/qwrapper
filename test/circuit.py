@@ -1,5 +1,27 @@
 from qwrapper.circuit import QulacsCircuit, QiskitCircuit
 from time import time
+import unittest, math
+
+
+class TestCircuit(unittest.TestCase):
+    def test_postselect(self):
+        qc = QulacsCircuit(3)
+        qc.rz(2 * math.pi / 3, 0)
+        qc.h(1)
+        qc.h(2)
+        qc.post_select(2, 0)
+        vector = qc.get_state_vector()
+        for s in vector:
+            print(s)
+        print("-----------")
+        qc = QiskitCircuit(3)
+        qc.rz(2 * math.pi / 3, 0)
+        qc.h(1)
+        qc.h(2)
+        qc.post_select(2, 0)
+        vector = qc.get_state_vector()
+        for s in vector:
+            print(s)
 
 
 def compare():
@@ -37,5 +59,6 @@ def benchmark(qc, loop):
 
 
 if __name__ == '__main__':
-    compare()
+    unittest.main()
+    # compare()
     # print(benchmark(QulacsCircuit(3), 100), benchmark(QiskitCircuit(3), 100))
