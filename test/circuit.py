@@ -6,7 +6,7 @@ import unittest, math
 class TestCircuit(unittest.TestCase):
     def test_postselect(self):
         qc = QulacsCircuit(3)
-        qc.rz(2 * math.pi / 3, 0)
+        qc.rx(2 * math.pi / 3, 0)
         qc.h(1)
         qc.h(2)
         qc.post_select(2, 0)
@@ -15,7 +15,7 @@ class TestCircuit(unittest.TestCase):
             print(s)
         print("-----------")
         qc = QiskitCircuit(3)
-        qc.rz(2 * math.pi / 3, 0)
+        qc.rx(2 * math.pi / 3, 0)
         qc.h(1)
         qc.h(2)
         qc.post_select(2, 0)

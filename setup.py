@@ -22,5 +22,5 @@ setuptools.setup(
         "qiskit>=0.29.0",
         "Qulacs>=0.3.0"
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
 )
