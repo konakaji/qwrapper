@@ -2,7 +2,6 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit import Aer
 from qiskit import execute
 from qulacs import QuantumState, QuantumCircuit as QCircuit
-from qulacs.gate import Measurement
 from abc import ABC, abstractmethod
 from qwrapper.encoder import Encoder
 import random, math
@@ -130,7 +129,9 @@ class QulacsCircuit(QWrapper):
         self.nqubit = nqubit
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
-        self.state_init = self._state_init
+        state = QuantumState(self.nqubit)
+        state.set_zero_state()
+        self.state = state
 
     def h(self, index):
         self.circuit.add_H_gate(index)
@@ -182,7 +183,7 @@ class QulacsCircuit(QWrapper):
         return rs
 
     def get_counts(self, nshot):
-        state = self.state_init()
+        state = self.state.copy()
         self.circuit.update_quantum_state(state)
         r = {}
         n_q = state.get_qubit_count()
@@ -194,17 +195,12 @@ class QulacsCircuit(QWrapper):
         return r
 
     def get_state_vector(self):
-        state = self.state_init()
+        state = self.state.copy()
         self.circuit.update_quantum_state(state)
         return self.execute_post_selects(state.get_vector(), self.post_selects, self.nqubit)
 
     def post_select(self, index, value):
         self.post_selects[self.nqubit - index - 1] = value
-
-    def _state_init(self):
-        state = QuantumState(self.nqubit)
-        state.set_zero_state()
-        return state
 
     @classmethod
     def _get_bin(cls, x, n=0):

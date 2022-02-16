@@ -1,4 +1,5 @@
 from qwrapper.circuit import QulacsCircuit, QiskitCircuit
+from qulacs import QuantumState, QuantumCircuit
 from time import time_ns
 import unittest, math
 
@@ -6,16 +7,19 @@ import unittest, math
 class TestCircuit(unittest.TestCase):
     def test_sample(self):
         st = time_ns()
-        qc = QulacsCircuit(6)
-        qc.get_state_vector()
-        dur = time_ns() - st
-        print(dur)
+        qc = QulacsCircuit(3)
+        def _state_init():
+            state = QuantumState(3)
+            state.set_zero_state()
+            circuit = QuantumCircuit(3)
+            circuit.add_H_gate(0)
+            circuit.update_quantum_state(state)
+            return state.copy()
+        qc.state_init = _state_init
+        print(qc.get_state_vector())
 
-        st = time_ns()
-        qc = QiskitCircuit(6)
-        qc.get_samples(1)
-        dur = time_ns() - st
-        print(dur)
+        qc = QiskitCircuit(3)
+        print(qc.get_state_vector())
 
     def test_postselect(self):
         qc = QulacsCircuit(3)
