@@ -1,9 +1,22 @@
 from qwrapper.circuit import QulacsCircuit, QiskitCircuit
-from time import time
+from time import time_ns
 import unittest, math
 
 
 class TestCircuit(unittest.TestCase):
+    def test_sample(self):
+        st = time_ns()
+        qc = QulacsCircuit(6)
+        qc.get_state_vector()
+        dur = time_ns() - st
+        print(dur)
+
+        st = time_ns()
+        qc = QiskitCircuit(6)
+        qc.get_samples(1)
+        dur = time_ns() - st
+        print(dur)
+
     def test_postselect(self):
         qc = QulacsCircuit(3)
         qc.rx(2 * math.pi / 3, 0)
