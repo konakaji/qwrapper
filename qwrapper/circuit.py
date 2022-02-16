@@ -194,6 +194,11 @@ class QulacsCircuit(QWrapper):
             r[b] = r[b] + 1
         return r
 
+    def get_state(self):
+        state = self.state.copy()
+        self.circuit.update_quantum_state(state)
+        return state
+
     def get_state_vector(self):
         state = self.state.copy()
         self.circuit.update_quantum_state(state)
