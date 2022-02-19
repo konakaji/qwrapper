@@ -187,7 +187,7 @@ class QulacsCircuit(QWrapper):
         self.circuit.update_quantum_state(state)
         r = {}
         n_q = state.get_qubit_count()
-        for sample in state.sampling(nshot):
+        for sample in state.sampling(nshot, seed=random.randint(0, 100000)):
             b = self._get_bin(sample, n_q)
             if b not in r:
                 r[b] = 0
