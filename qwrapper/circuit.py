@@ -40,6 +40,18 @@ class QWrapper(ABC):
         pass
 
     @abstractmethod
+    def s(self, index):
+        pass
+
+    @abstractmethod
+    def sdag(self, index):
+        pass
+
+    def hsdag(self, index):
+        self.h(index)
+        self.sdag(index)
+
+    @abstractmethod
     def x(self, index):
         pass
 
@@ -135,6 +147,12 @@ class QulacsCircuit(QWrapper):
 
     def h(self, index):
         self.circuit.add_H_gate(index)
+
+    def s(self, index):
+        self.circuit.add_S_gate(index)
+
+    def sdag(self, index):
+        self.circuit.add_Sdag_gate(index)
 
     def x(self, index):
         self.circuit.add_X_gate(index)
@@ -245,6 +263,12 @@ class QiskitCircuit(QWrapper):
 
     def z(self, index):
         self.qc.z(index)
+
+    def s(self, index):
+        self.qc.s(index)
+
+    def sdag(self, index):
+        self.qc.sdg(index)
 
     def rx(self, theta, index):
         self.qc.rx(-theta, index)
