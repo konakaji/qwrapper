@@ -84,6 +84,14 @@ class QWrapper(ABC):
         pass
 
     @abstractmethod
+    def cy(self, c_index, t_index):
+        pass
+
+    @abstractmethod
+    def cz(self, c_index, t_index):
+        pass
+
+    @abstractmethod
     def measure_all(self):
         pass
 
@@ -174,6 +182,14 @@ class QulacsCircuit(QWrapper):
 
     def cnot(self, c_index, t_index):
         self.circuit.add_CNOT_gate(c_index, t_index)
+
+    def cy(self, c_index, t_index):
+        self.sdag(t_index)
+        self.cx(c_index, t_index)
+        self.s(t_index)
+
+    def cz(self, c_index, t_index):
+        self.circuit.add_CZ_gate(c_index, t_index)
 
     def get_q_register(self):
         return None
@@ -281,6 +297,12 @@ class QiskitCircuit(QWrapper):
 
     def cnot(self, c_index, t_index):
         self.qc.cnot(c_index, t_index)
+
+    def cy(self, c_index, t_index):
+        self.qc.cy(c_index, t_index)
+
+    def cz(self, c_index, t_index):
+        self.qc.cz(c_index, t_index)
 
     def measure_all(self):
         self.qc.measure_all()
