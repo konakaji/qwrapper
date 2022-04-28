@@ -8,7 +8,7 @@ class QUtil:
             excludes = {}
         r = 1
         for j, s in enumerate(sample):
-            if j in excludes:
+            if len(sample) - j - 1 in excludes:
                 continue
             if s == 1:
                 r = r * -1
