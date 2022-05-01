@@ -7,9 +7,10 @@ class QUtil:
         if excludes is None:
             excludes = {}
         r = 1
-        for j, s in enumerate(sample):
-            if len(sample) - j - 1 in excludes:
+        for j in range(len(sample)):
+            if j in excludes:
                 continue
+            s = cls.get_value(j, sample)
             if s == 1:
                 r = r * -1
         return r
@@ -24,3 +25,7 @@ class QUtil:
             parity = cls.parity(encoder.encode(i), excludes)
             result = result + parity * pow(abs(s), 2)
         return result
+
+    @classmethod
+    def get_value(cls, q_index, sample):
+        return sample[len(sample) - 1 - q_index]
