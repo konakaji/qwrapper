@@ -32,14 +32,6 @@ class QWrapper(ABC):
         return self.cnot(c_index, t_index)
 
     @abstractmethod
-    def gen_cache(self):
-        pass
-
-    @abstractmethod
-    def cache_available(self):
-        pass
-
-    @abstractmethod
     def get_async_samples(self, nshot):
         pass
 
@@ -157,19 +149,6 @@ class QulacsCircuit(QWrapper):
         self.nqubit = nqubit
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
-        state = QuantumState(self.nqubit)
-        state.set_zero_state()
-        self.state = state
-
-    def cache_available(self):
-        return True
-
-    def gen_cache(self):
-        state = self.state.copy()
-        self.circuit.update_quantum_state(state)
-        re = QulacsCircuit(self.nqubit)
-        re.state = state
-        return re
 
     def h(self, index):
         self.circuit.add_H_gate(index)
@@ -228,14 +207,23 @@ class QulacsCircuit(QWrapper):
         return Future(listener)
 
     def get_samples(self, nshot):
+        state = QuantumState(self.nqubit)
+        state.set_zero_state()
+        self.circuit.update_quantum_state(state)
         rs = []
-        for b, v in self.get_counts(nshot).items():
-            rs.extend([from_bitstring(b) for _ in range(v)])
-        random.shuffle(rs)
+        dictionary = {}
+        for sample in state.sampling(nshot, seed=random.randint(0, 100000)):
+            if sample in dictionary:
+                rs.append(dictionary[sample])
+            else:
+                r = from_bitstring(self._get_bin(sample, self.nqubit))
+                dictionary[sample] = r
+                rs.append(r)
         return rs
 
     def get_counts(self, nshot):
-        state = self.state.copy()
+        state = QuantumState(self.nqubit)
+        state.set_zero_state()
         self.circuit.update_quantum_state(state)
         r = {}
         n_q = state.get_qubit_count()
@@ -247,12 +235,14 @@ class QulacsCircuit(QWrapper):
         return r
 
     def get_state(self):
-        state = self.state.copy()
+        state = QuantumState(self.nqubit)
+        state.set_zero_state()
         self.circuit.update_quantum_state(state)
         return state
 
     def get_state_vector(self):
-        state = self.state.copy()
+        state = QuantumState(self.nqubit)
+        state.set_zero_state()
         self.circuit.update_quantum_state(state)
         return self.execute_post_selects(state.get_vector(), self.post_selects, self.nqubit)
 
@@ -285,12 +275,6 @@ class QiskitCircuit(QWrapper):
         self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
         self.encoder = Encoder(self.nqubit)
         self.post_selects = {}
-
-    def gen_cache(self):
-        raise NotImplementedError("gen cache is not avilable")
-
-    def cache_available(self):
-        return False
 
     def h(self, index):
         self.qc.h(index)

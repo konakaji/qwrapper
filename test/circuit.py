@@ -21,15 +21,29 @@ class TestCircuit(unittest.TestCase):
         for v1, v2 in zip(circuit.get_state_vector(), qi_circuit.get_state_vector()):
             self.assertAlmostEquals(v1, v2)
 
-    def test_gencache(self):
-        circuit = QulacsCircuit(2)
-        circuit.h(0)
-        cache = circuit.gen_cache()
-        for i in range(100):
-            c = cache.gen_cache()
-            c.x(1)
-            self.assertAlmostEquals(1 / math.sqrt(2), c.get_state_vector()[2])
-
+    def test_overtime(self):
+        from time import time
+        st = time()
+        for j in range(1000):
+            state = QuantumState(8)
+            state.set_zero_state()
+            circuit = QuantumCircuit(8)
+            circuit.add_H_gate(0)
+            circuit.add_CNOT_gate(0, 1)
+            circuit.add_H_gate(1)
+            circuit.add_CNOT_gate(2, 3)
+            circuit.update_quantum_state(state)
+            state.sampling(1000)
+        print(time() - st)
+        st = time()
+        for j in range(1000):
+            qc = QulacsCircuit(8)
+            qc.h(0)
+            qc.cnot(0, 1)
+            qc.h(1)
+            qc.cnot(2, 3)
+            qc.get_samples(1000)
+        print(time() - st)
 
 #
 #     def test_sample(self):
