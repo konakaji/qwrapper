@@ -21,6 +21,15 @@ class TestCircuit(unittest.TestCase):
         for v1, v2 in zip(circuit.get_state_vector(), qi_circuit.get_state_vector()):
             self.assertAlmostEquals(v1, v2)
 
+    def test_gencache(self):
+        circuit = QulacsCircuit(2)
+        circuit.h(0)
+        cache = circuit.gen_cache()
+        for i in range(100):
+            c = cache.gen_cache()
+            c.x(1)
+            self.assertAlmostEquals(1 / math.sqrt(2), c.get_state_vector()[2])
+
 
 #
 #     def test_sample(self):

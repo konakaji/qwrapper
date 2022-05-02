@@ -32,6 +32,14 @@ class QWrapper(ABC):
         return self.cnot(c_index, t_index)
 
     @abstractmethod
+    def gen_cache(self):
+        pass
+
+    @abstractmethod
+    def cache_available(self):
+        pass
+
+    @abstractmethod
     def get_async_samples(self, nshot):
         pass
 
@@ -153,6 +161,16 @@ class QulacsCircuit(QWrapper):
         state.set_zero_state()
         self.state = state
 
+    def cache_available(self):
+        return True
+
+    def gen_cache(self):
+        state = self.state.copy()
+        self.circuit.update_quantum_state(state)
+        re = QulacsCircuit(self.nqubit)
+        re.state = state
+        return re
+
     def h(self, index):
         self.circuit.add_H_gate(index)
 
@@ -267,6 +285,12 @@ class QiskitCircuit(QWrapper):
         self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
         self.encoder = Encoder(self.nqubit)
         self.post_selects = {}
+
+    def gen_cache(self):
+        raise NotImplementedError("gen cache is not avilable")
+
+    def cache_available(self):
+        return False
 
     def h(self, index):
         self.qc.h(index)
