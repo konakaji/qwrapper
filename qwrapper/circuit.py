@@ -52,8 +52,8 @@ class QWrapper(ABC):
         pass
 
     def hsdag(self, index):
-        self.h(index)
         self.sdag(index)
+        self.h(index)
 
     @abstractmethod
     def x(self, index):

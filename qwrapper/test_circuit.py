@@ -10,7 +10,7 @@ class TestQulacsCircuit(TestCase):
         qc2 = qc.copy()
         qc2.h(0)
 
-        self.assertAlmostEquals(1/math.sqrt(2), qc.get_state_vector()[0])
+        self.assertAlmostEquals(1 / math.sqrt(2), qc.get_state_vector()[0])
         self.assertAlmostEquals(1, qc2.get_state_vector()[0])
 
     def test_copy_qiskit(self):
@@ -19,5 +19,5 @@ class TestQulacsCircuit(TestCase):
         qc2 = qc.copy()
         qc2.h(0)
 
-        self.assertAlmostEquals(1/math.sqrt(2), qc.get_state_vector()[0])
+        self.assertAlmostEquals(1 / math.sqrt(2), qc.get_state_vector()[0])
         self.assertAlmostEquals(1, qc2.get_state_vector()[0])
