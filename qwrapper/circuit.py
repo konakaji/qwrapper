@@ -32,6 +32,10 @@ class QWrapper(ABC):
         return self.cnot(c_index, t_index)
 
     @abstractmethod
+    def copy(self):
+        pass
+
+    @abstractmethod
     def get_async_samples(self, nshot):
         pass
 
@@ -149,6 +153,12 @@ class QulacsCircuit(QWrapper):
         self.nqubit = nqubit
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
+
+    def copy(self):
+        result = QulacsCircuit(self.nqubit)
+        result.circuit = self.circuit.copy()
+        result.post_selects = self.post_selects.copy()
+        return result
 
     def h(self, index):
         self.circuit.add_H_gate(index)
@@ -275,6 +285,13 @@ class QiskitCircuit(QWrapper):
         self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
         self.encoder = Encoder(self.nqubit)
         self.post_selects = {}
+
+    def copy(self):
+        result = QiskitCircuit(nqubit=self.nqubit)
+        result.qc = self.qc.copy()
+        result.encoder = Encoder(self.nqubit)
+        result.post_selects = self.post_selects.copy()
+        return result
 
     def h(self, index):
         self.qc.h(index)
