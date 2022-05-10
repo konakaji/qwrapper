@@ -179,13 +179,13 @@ class QulacsCircuit(QWrapper):
         self.circuit.add_Z_gate(index)
 
     def rx(self, theta, index):
-        self.circuit.add_RX_gate(index, theta)
+        self.circuit.add_RX_gate(index, -theta)
 
     def ry(self, theta, index):
-        self.circuit.add_RY_gate(index, theta)
+        self.circuit.add_RY_gate(index, -theta)
 
     def rz(self, theta, index):
-        self.circuit.add_RZ_gate(index, theta)
+        self.circuit.add_RZ_gate(index, -theta)
 
     def cnot(self, c_index, t_index):
         self.circuit.add_CNOT_gate(c_index, t_index)
@@ -312,13 +312,13 @@ class QiskitCircuit(QWrapper):
         self.qc.sdg(index)
 
     def rx(self, theta, index):
-        self.qc.rx(-theta, index)
+        self.qc.rx(theta, index)
 
     def ry(self, theta, index):
-        self.qc.ry(-theta, index)
+        self.qc.ry(theta, index)
 
     def rz(self, theta, index):
-        self.qc.rz(-theta, index)
+        self.qc.rz(theta, index)
 
     def cnot(self, c_index, t_index):
         self.qc.cnot(c_index, t_index)
