@@ -39,4 +39,8 @@ class QUtil:
         :param sample:
         :return the bit value corresponds to q_index:
         """
-        return sample[len(sample) - 1 - q_index]
+        return sample[cls.get_index(q_index, len(sample))]
+
+    @classmethod
+    def get_index(cls, q_index, nqubit):
+        return nqubit - 1 - q_index
