@@ -153,11 +153,13 @@ class QulacsCircuit(QWrapper):
         self.nqubit = nqubit
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
+        self._ref_state = None
 
     def copy(self):
         result = QulacsCircuit(self.nqubit)
         result.circuit = self.circuit.copy()
         result.post_selects = self.post_selects.copy()
+        result._ref_state = self._ref_state
         return result
 
     def h(self, index):
@@ -217,8 +219,7 @@ class QulacsCircuit(QWrapper):
         return Future(listener)
 
     def get_samples(self, nshot):
-        state = QuantumState(self.nqubit)
-        state.set_zero_state()
+        state = self._get_ref_state()
         self.circuit.update_quantum_state(state)
         rs = []
         dictionary = {}
@@ -232,8 +233,7 @@ class QulacsCircuit(QWrapper):
         return rs
 
     def get_counts(self, nshot):
-        state = QuantumState(self.nqubit)
-        state.set_zero_state()
+        state = self._get_ref_state()
         self.circuit.update_quantum_state(state)
         r = {}
         n_q = state.get_qubit_count()
@@ -245,19 +245,29 @@ class QulacsCircuit(QWrapper):
         return r
 
     def get_state(self):
-        state = QuantumState(self.nqubit)
-        state.set_zero_state()
+        state = self._get_ref_state()
         self.circuit.update_quantum_state(state)
         return state
 
     def get_state_vector(self):
-        state = QuantumState(self.nqubit)
-        state.set_zero_state()
+        state = self._get_ref_state()
         self.circuit.update_quantum_state(state)
         return self.execute_post_selects(state.get_vector(), self.post_selects, self.nqubit)
 
     def post_select(self, index, value):
         self.post_selects[self.nqubit - index - 1] = value
+
+    def set_ref_state(self, vector):
+        state = QuantumState(self.nqubit)
+        state.load(vector)
+        self._ref_state = state
+
+    def _get_ref_state(self):
+        if self._ref_state is not None:
+            return self._ref_state.copy()
+        state = QuantumState(self.nqubit)
+        state.set_zero_state()
+        return state
 
     @classmethod
     def _get_bin(cls, x, n=0):
