@@ -411,3 +411,9 @@ class QiskitCircuit(QWrapper):
             samples.extend([k for _ in range(c)])
         random.shuffle(samples)
         return samples
+
+
+def init_circuit(nqubit, tool) -> QWrapper:
+    if tool == "qulacs":
+        return QulacsCircuit(nqubit)
+    return QiskitCircuit(nqubit)
