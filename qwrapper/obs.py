@@ -29,7 +29,7 @@ class PauliObservable:
             if matrix is None:
                 matrix = m[c]
             else:
-                matrix = np.kron(matrix, m[c])
+                matrix = np.kron(m[c], matrix)
         return matrix
 
     def _append(self, qc: QWrapper):

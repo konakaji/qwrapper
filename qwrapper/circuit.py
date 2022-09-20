@@ -108,6 +108,10 @@ class QWrapper(ABC):
         pass
 
     @abstractmethod
+    def draw_and_show(self):
+        pass
+
+    @abstractmethod
     def get_samples(self, nshot):
         pass
 
@@ -210,6 +214,9 @@ class QulacsCircuit(QWrapper):
         pass
 
     def draw(self, output="mpl"):
+        pass
+
+    def draw_and_show(self):
         pass
 
     def get_async_samples(self, nshot) -> Future:
@@ -352,7 +359,12 @@ class QiskitCircuit(QWrapper):
         self.qc.barrier()
 
     def draw(self, output="mpl"):
-        self.qc.draw(output)
+        self.qc.draw(output=output)
+
+    def draw_and_show(self):
+        self.draw()
+        import matplotlib.pyplot as plt
+        plt.show()
 
     def get_async_samples(self, nshot):
         if self.post_selects is not None:
