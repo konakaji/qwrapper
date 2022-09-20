@@ -1,5 +1,13 @@
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
+import numpy as np
+
+
+class Pauli:
+    X = np.matrix([[0, 1], [1, 0]])
+    Y = np.matrix([[0, -1j], [1j, 0]])
+    Z = np.matrix([[1, 0], [0, -1]])
+    I = np.matrix([[1, 0], [0, 1]])
 
 
 class PauliObservable:
@@ -11,7 +19,18 @@ class PauliObservable:
         result = 0
         for sample in qc.get_samples(nshot):
             result += QUtil.parity(sample, excludes)
-        return result/nshot
+        return result / nshot
+
+    def to_matrix(self):
+        m = {"X": Pauli.X, "Y": Pauli.Y,
+             "Z": Pauli.Z, "I": Pauli.I}
+        matrix = None
+        for c in self.p_string:
+            if matrix is None:
+                matrix = m[c]
+            else:
+                matrix = np.kron(matrix, m[c])
+        return matrix
 
     def _append(self, qc: QWrapper):
         index = 0
