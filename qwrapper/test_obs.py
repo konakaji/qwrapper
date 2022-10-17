@@ -22,3 +22,10 @@ class TestPauliObservable(TestCase):
         qc.x(1)
         obs = PauliObservable("IIZ")
         self.assertAlmostEqual(1, obs.get_value(qc, 100))
+
+    def test_exact_value(self):
+        qc = init_circuit(3, "qulacs")
+        qc.h(0)
+        qc.x(1)
+        obs = PauliObservable("IIZ")
+        self.assertAlmostEqual(1, obs.exact_value(qc))

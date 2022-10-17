@@ -21,6 +21,11 @@ class PauliObservable:
             result += QUtil.parity(sample, excludes)
         return result / nshot
 
+    def exact_value(self, qc: QWrapper):
+        matrix = self.to_matrix()
+        vector = qc.get_state_vector()
+        return vector.T.conjugate().dot(matrix).dot(vector).item(0, 0).real
+
     def to_matrix(self):
         m = {"X": Pauli.X, "Y": Pauli.Y,
              "Z": Pauli.Z, "I": Pauli.I}
