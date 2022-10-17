@@ -13,6 +13,7 @@ class Pauli:
 class PauliObservable:
     def __init__(self, p_string):
         self.p_string = p_string
+        self.matrix = None
 
     def get_value(self, qc: QWrapper, nshot):
         excludes = self._append(qc)
@@ -22,9 +23,10 @@ class PauliObservable:
         return result / nshot
 
     def exact_value(self, qc: QWrapper):
-        matrix = self.to_matrix()
+        if self.matrix is None:
+            self.matrix = self.to_matrix()
         vector = qc.get_state_vector()
-        return vector.T.conjugate().dot(matrix).dot(vector).item(0, 0).real
+        return vector.T.conjugate().dot(self.matrix).dot(vector).item(0, 0).real
 
     def to_matrix(self):
         m = {"X": Pauli.X, "Y": Pauli.Y,
