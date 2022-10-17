@@ -11,9 +11,18 @@ class Pauli:
 
 
 class PauliObservable:
-    def __init__(self, p_string):
-        self.p_string = p_string
+    def __init__(self, p_string, sign=1):
+        self._p_string = p_string
+        self._sign = sign
         self.matrix = None
+
+    @property
+    def p_string(self):
+        return self._p_string
+
+    @property
+    def sign(self):
+        return self._sign
 
     def get_value(self, qc: QWrapper, nshot):
         excludes = self._append(qc)
@@ -32,17 +41,17 @@ class PauliObservable:
         m = {"X": Pauli.X, "Y": Pauli.Y,
              "Z": Pauli.Z, "I": Pauli.I}
         matrix = None
-        for c in self.p_string:
+        for c in self._p_string:
             if matrix is None:
                 matrix = m[c]
             else:
                 matrix = np.kron(m[c], matrix)
-        return matrix
+        return self.sign * matrix
 
     def _append(self, qc: QWrapper):
         index = 0
         excludes = set()
-        for c in self.p_string:
+        for c in self._p_string:
             if c == "X":
                 qc.h(index)
             elif c == "Y":
