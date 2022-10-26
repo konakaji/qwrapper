@@ -16,6 +16,9 @@ class PauliObservable:
         self._sign = sign
         self.matrix = None
 
+    def copy(self):
+        return PauliObservable(self._p_string, self._sign)
+
     @property
     def p_string(self):
         return self._p_string
