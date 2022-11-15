@@ -1,51 +1,61 @@
-from qwrapper.circuit import QulacsCircuit, QiskitCircuit
+from qwrapper.circuit import QulacsCircuit, QiskitCircuit, init_circuit
 from qulacs import QuantumState, QuantumCircuit
 from time import time_ns
 import unittest, math
 
 
 class TestCircuit(unittest.TestCase):
-    def test_cy(self):
-        circuit = QulacsCircuit(2)
-        circuit.h(0)
-        circuit.rx(0.2, 0)
-        circuit.ry(0.3, 1)
-        circuit.cy(0, 1)
+    def test_draw(self):
+        qc = init_circuit(4, "qiskit")
+        qc.draw_mode = True
+        qc.rx(0.2, 1)
+        qc.ry(0.5, 2)
+        qc.cnot(1, 3)
+        qc.ry(0.5, 3)
+        qc.draw_and_show()
 
-        qi_circuit = QiskitCircuit(2)
-        qi_circuit.h(0)
-        qi_circuit.rx(0.2, 0)
-        qi_circuit.ry(0.3, 1)
-        qi_circuit.cy(0, 1)
 
-        for v1, v2 in zip(circuit.get_state_vector(), qi_circuit.get_state_vector()):
-            self.assertAlmostEquals(v1, v2)
-
-    def test_overtime(self):
-        from time import time
-        st = time()
-        for j in range(1000):
-            state = QuantumState(8)
-            state.set_zero_state()
-            circuit = QuantumCircuit(8)
-            circuit.add_H_gate(0)
-            circuit.add_CNOT_gate(0, 1)
-            circuit.add_H_gate(1)
-            circuit.add_CNOT_gate(2, 3)
-            circuit.update_quantum_state(state)
-            state.sampling(1000)
-        print(time() - st)
-        st = time()
-        for j in range(1000):
-            qc = QulacsCircuit(8)
-            qc.h(0)
-            qc.cnot(0, 1)
-            qc.h(1)
-            qc.cnot(2, 3)
-            qc.get_samples(1000)
-        print(time() - st)
-
+#     def test_cy(self):
+#         circuit = QulacsCircuit(2)
+#         circuit.h(0)
+#         circuit.rx(0.2, 0)
+#         circuit.ry(0.3, 1)
+#         circuit.cy(0, 1)
 #
+#         qi_circuit = QiskitCircuit(2)
+#         qi_circuit.h(0)
+#         qi_circuit.rx(0.2, 0)
+#         qi_circuit.ry(0.3, 1)
+#         qi_circuit.cy(0, 1)
+#
+#         for v1, v2 in zip(circuit.get_state_vector(), qi_circuit.get_state_vector()):
+#             self.assertAlmostEquals(v1, v2)
+#
+#     def test_overtime(self):
+#         from time import time
+#         st = time()
+#         for j in range(1000):
+#             state = QuantumState(8)
+#             state.set_zero_state()
+#             circuit = QuantumCircuit(8)
+#             circuit.add_H_gate(0)
+#             circuit.add_CNOT_gate(0, 1)
+#             circuit.add_H_gate(1)
+#             circuit.add_CNOT_gate(2, 3)
+#             circuit.update_quantum_state(state)
+#             state.sampling(1000)
+#         print(time() - st)
+#         st = time()
+#         for j in range(1000):
+#             qc = QulacsCircuit(8)
+#             qc.h(0)
+#             qc.cnot(0, 1)
+#             qc.h(1)
+#             qc.cnot(2, 3)
+#             qc.get_samples(1000)
+#         print(time() - st)
+#
+# #
 #     def test_sample(self):
 #         st = time_ns()
 #         qc = QulacsCircuit(3)

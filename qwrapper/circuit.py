@@ -302,6 +302,8 @@ class QiskitCircuit(QWrapper):
         self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
         self.encoder = Encoder(self.nqubit)
         self.post_selects = {}
+        self.draw_mode = False
+        self.param_count = 1
 
     def copy(self):
         result = QiskitCircuit(nqubit=self.nqubit)
@@ -329,13 +331,25 @@ class QiskitCircuit(QWrapper):
         self.qc.sdg(index)
 
     def rx(self, theta, index):
-        self.qc.rx(theta, index)
+        if self.draw_mode:
+            self.qc.x(index, label=rf"$R_X(\theta_{self.param_count})$")
+            self.param_count += 1
+        else:
+            self.qc.rx(theta, index)
 
     def ry(self, theta, index):
-        self.qc.ry(theta, index)
+        if self.draw_mode:
+            self.qc.x(index, label=rf"$R_Y(\theta_{self.param_count})$")
+            self.param_count += 1
+        else:
+            self.qc.ry(theta, index)
 
     def rz(self, theta, index):
-        self.qc.rz(theta, index)
+        if self.draw_mode:
+            self.qc.x(index, label=rf"$R_Z(\theta_{self.param_count})$")
+            self.param_count += 1
+        else:
+            self.qc.rz(theta, index)
 
     def cnot(self, c_index, t_index):
         self.qc.cnot(c_index, t_index)
@@ -359,7 +373,7 @@ class QiskitCircuit(QWrapper):
         self.qc.barrier()
 
     def draw(self, output="mpl"):
-        self.qc.draw(output=output)
+        return self.qc.draw(output=output, style={"name": "bw"})
 
     def draw_and_show(self):
         self.draw()
