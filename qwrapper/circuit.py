@@ -332,21 +332,21 @@ class QiskitCircuit(QWrapper):
 
     def rx(self, theta, index):
         if self.draw_mode:
-            self.qc.x(index, label=rf"$R_X(\theta_{self.param_count})$")
+            self.qc.x(index, label=rf"$R_X(\theta_{{{self.param_count}}})$")
             self.param_count += 1
         else:
             self.qc.rx(theta, index)
 
     def ry(self, theta, index):
         if self.draw_mode:
-            self.qc.x(index, label=rf"$R_Y(\theta_{self.param_count})$")
+            self.qc.x(index, label=rf"$R_Y(\theta_{{{self.param_count}}})$")
             self.param_count += 1
         else:
             self.qc.ry(theta, index)
 
     def rz(self, theta, index):
         if self.draw_mode:
-            self.qc.x(index, label=rf"$R_Z(\theta_{self.param_count})$")
+            self.qc.x(index, label=rf"$R_Z(\theta_{{{self.param_count}}})$")
             self.param_count += 1
         else:
             self.qc.rz(theta, index)
