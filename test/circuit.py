@@ -11,6 +11,7 @@ class TestCircuit(unittest.TestCase):
         qc.rx(0.2, 1)
         qc.ry(0.5, 2)
         qc.cnot(1, 3)
+        qc.barrier()
         qc.ry(0.5, 3)
         qc.draw_and_show()
 

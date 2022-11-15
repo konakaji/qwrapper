@@ -373,7 +373,7 @@ class QiskitCircuit(QWrapper):
         self.qc.barrier()
 
     def draw(self, output="mpl"):
-        return self.qc.draw(output=output, style={"name": "bw"})
+        return self.qc.draw(output=output, style={"name": "bw"}, plot_barriers=False)
 
     def draw_and_show(self):
         self.draw()
