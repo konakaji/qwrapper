@@ -5,7 +5,9 @@ class MeasurementMethod:
     def __init__(self, hamiltonian: Hamiltonian):
         self.hamiltonian = hamiltonian
 
-    def get_value(self, ntotal, prepare):
+    def get_value(self, prepare, ntotal=0):
+        if ntotal == 0:
+            return self.exact_value(prepare)
         res = 0
         nshot = ntotal / len(self.hamiltonian.paulis)
         for h, p in zip(self.hamiltonian.hs, self.hamiltonian.paulis):
