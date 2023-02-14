@@ -4,7 +4,7 @@ from qiskit import execute
 from qulacs import QuantumState, QuantumCircuit as QCircuit
 from abc import ABC, abstractmethod
 from qwrapper.encoder import Encoder
-import random, math
+import random, math, numpy as np
 
 
 def from_bitstring(str):
@@ -423,7 +423,7 @@ class QiskitCircuit(QWrapper):
         array = []
         for v in vector:
             array.append(v)
-        return self.execute_post_selects(array, self.post_selects, self.nqubit)
+        return np.array(self.execute_post_selects(array, self.post_selects, self.nqubit))
 
     def _do_get_samples(self, nshot):
         self.qc.measure_all(add_bits=False)
