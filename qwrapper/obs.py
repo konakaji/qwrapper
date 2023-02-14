@@ -28,6 +28,8 @@ class PauliObservable:
         return self._sign
 
     def get_value(self, qc: QWrapper, nshot):
+        if nshot == 0:
+            return self.exact_value(qc)
         excludes = self._append(qc)
         result = 0
         for sample in qc.get_samples(nshot):
@@ -63,3 +65,58 @@ class PauliObservable:
                 excludes.add(index)
             index = index + 1
         return excludes
+
+
+class Hamiltonian:
+    def __init__(self, hs, paulis: [PauliObservable], nqubit):
+        self._hs = hs
+        self._paulis = paulis
+        self._nqubit = nqubit
+
+    def save(self, path):
+        path = path.replace(" ", "-")
+        with open(path, "w") as f:
+            for h, pauli in zip(self._hs, self._paulis):
+                f.write(f"{h}\t{pauli.p_string}\t{pauli.sign}\n")
+
+    def set_hs(self, hs):
+        self._hs = hs
+
+    @classmethod
+    def load(cls, path):
+        path = path.replace(" ", "-")
+        hs = []
+        paulis = []
+        n_qubit = None
+        with open(path) as f:
+            for l in f.readlines():
+                h, p_string, sign = l.rstrip().split('\t')
+                n_qubit = len(p_string)
+                hs.append(float(h))
+                paulis.append(PauliObservable(p_string, int(sign)))
+        return Hamiltonian(hs, paulis, n_qubit)
+
+    @property
+    def nqubit(self):
+        return self._nqubit
+
+    @property
+    def hs(self):
+        return self._hs
+
+    @property
+    def paulis(self):
+        return self._paulis
+
+    def lam(self):
+        result = 0
+        for h in self._hs:
+            result += h
+        return result
+
+    def __repr__(self) -> str:
+        result = ""
+        result += ",".join([p.p_string for p in self._paulis])
+        result += "\n"
+        result += ",".join([str(h) for h in self._hs])
+        return result
