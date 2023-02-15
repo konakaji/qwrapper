@@ -1,5 +1,6 @@
 from qwrapper.obs import Hamiltonian
 from qwrapper.operator import ControllablePauli
+from numpy.linalg import eigh
 
 
 class HeisenbergModel(Hamiltonian):
@@ -49,3 +50,19 @@ class HeisenbergModel(Hamiltonian):
                 results.append("I")
         p_string = "".join(results)
         return ControllablePauli(p_string)
+
+
+def to_matrix_hamiltonian(hamiltonian: Hamiltonian):
+    result = None
+    count = 0
+    for h, o in zip(hamiltonian.hs, hamiltonian._paulis):
+        if result is None:
+            result = (h + 0j) * o.to_matrix()
+        else:
+            result += (h + 0j) * o.to_matrix()
+        count += 1
+    return result
+
+
+def compute_ground_state(hamiltonian: Hamiltonian):
+    return min(eigh(to_matrix_hamiltonian(hamiltonian))[0])
