@@ -58,13 +58,41 @@ class TransformingLRScheduler(LRScheduler):
         return self.lr
 
 
+class Monitor:
+    def monitor(self, t, value):
+        pass
+
+    def finalize(self):
+        pass
+
+
+class PrintMonitor(Monitor):
+    def monitor(self, t, value):
+        print(t, value)
+
+
+class FileMonitor(Monitor):
+    def __init__(self, path):
+        self.path = path
+        self.values = []
+
+    def monitor(self, t, value):
+        self.values.append((t, value))
+
+    def finalize(self):
+        with open(self.path, "w") as f:
+            for t, value in self.values:
+                f.write("{}\t{}\n".format(t, value))
+
+
 class AdamOptimizer(Optimizer):
     def __init__(self, scheduler=UnitLRScheduler(1e-3), maxiter=10000, tol=1e-10, beta_1=0.9, beta_2=0.99,
                  noise_factor=1e-8,
-                 eps=1e-10):
+                 eps=1e-10, monitors=[PrintMonitor()]):
         super(AdamOptimizer, self).__init__()
         self._maxiter = maxiter
         self.scheduler = scheduler
+        self.monitors = monitors
         self._tol = tol
         self._beta1 = beta_1
         self._beta2 = beta_2
@@ -82,7 +110,9 @@ class AdamOptimizer(Optimizer):
         self._v = np.zeros(len(derivative))
         while self._t < self._maxiter:
             if func is not None:
-                print(self._t, func(params))
+                value = func(params)
+                for monitor in self.monitors:
+                    monitor.monitor(self._t, value)
             derivative = gradient_function(params)
             self._t += 1
             self._m = self._beta1 * self._m + (1 - self._beta1) * derivative
