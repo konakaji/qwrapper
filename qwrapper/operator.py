@@ -19,7 +19,11 @@ class PauliTimeEvolution(Operator):
         for pair in pairs:
             qc.cnot(pair[0], pair[1])
         qc.barrier()
-        qc.rz(- 2 * self.pauli.sign * self.t, self._last_nonidentity_index())
+        index = self._last_nonidentity_index()
+        if index is None:
+            # identity
+            return
+        qc.rz(- 2 * self.pauli.sign * self.t, index)
         qc.barrier()
         pairs.reverse()
         for pair in pairs:
