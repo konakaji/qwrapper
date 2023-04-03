@@ -23,6 +23,13 @@ class TestPauliObservable(TestCase):
         obs = PauliObservable("IIZ")
         self.assertAlmostEqual(1, obs.get_value(qc, 100))
 
+    def test_to_string(self):
+        obs = PauliObservable("XZZ", 1)
+        self.assertEquals(str(obs), "+XZZ")
+
+        obs = PauliObservable("XZZ", -1)
+        self.assertEquals(str(obs), "-XZZ")
+
     def test_exact_value(self):
         qc = init_circuit(3, "qulacs")
         qc.h(0)

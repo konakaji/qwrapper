@@ -96,3 +96,13 @@ class ControllablePauli(PauliObservable, ControllableOperator):
             elif c == "Z":
                 qc.z(index)
             index += 1
+
+    @classmethod
+    def from_str(cls, str):
+        if str[0] == '+':
+            sign = 1
+        elif str[0] == '-':
+            sign = -1
+        else:
+            raise AttributeError('format is wrong')
+        return ControllablePauli(str[1:], sign)

@@ -66,6 +66,12 @@ class PauliObservable:
             index = index + 1
         return excludes
 
+    def __repr__(self) -> str:
+        sign_str = '+'
+        if self.sign == -1:
+            sign_str = '-'
+        return f'{sign_str}{self.p_string}'
+
 
 class Hamiltonian:
     def __init__(self, hs, paulis: [PauliObservable], nqubit):
