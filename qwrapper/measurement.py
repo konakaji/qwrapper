@@ -14,7 +14,7 @@ class MeasurementMethod:
         if seed is not None:
             random.seed(seed)
         if ntotal == 0:
-            return self.exact_value(prepare)
+            return self.exact_values(prepare)
         res = []
         nshot = ntotal / len(self.hamiltonian.paulis)
         for h, p in zip(self.hamiltonian.hs, self.hamiltonian.paulis):
