@@ -153,8 +153,9 @@ class QWrapper(ABC):
 
 
 class QulacsCircuit(QWrapper):
-    def __init__(self, nqubit):
+    def __init__(self, nqubit, gpu=False):
         self.nqubit = nqubit
+        self.gpu = True
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
         self._ref_state = None
@@ -265,14 +266,22 @@ class QulacsCircuit(QWrapper):
         self.post_selects[self.nqubit - index - 1] = value
 
     def set_ref_state(self, vector):
-        state = QuantumState(self.nqubit)
+        if self.gpu:
+            from qulacs import QuantumStateGpu
+            state = QuantumStateGpu(self.nqubit)
+        else:
+            state = QuantumState(self.nqubit)
         state.load(vector)
         self._ref_state = state
 
     def _get_ref_state(self):
         if self._ref_state is not None:
             return self._ref_state.copy()
-        state = QuantumState(self.nqubit)
+        if self.gpu:
+            from qulacs import QuantumStateGpu
+            state = QuantumStateGpu(self.nqubit)
+        else:
+            state = QuantumState(self.nqubit)
         state.set_zero_state()
         return state
 
@@ -442,4 +451,6 @@ class QiskitCircuit(QWrapper):
 def init_circuit(nqubit, tool) -> QWrapper:
     if tool == "qulacs":
         return QulacsCircuit(nqubit)
+    elif tool == "qulacs-gpu":
+        return QulacsCircuit(nqubit, gpu=True)
     return QiskitCircuit(nqubit)
