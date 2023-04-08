@@ -1,4 +1,4 @@
-from qwrapper.circuit import QWrapper
+from qwrapper.circuit import QWrapper, QulacsCircuit, QulacsGate
 from qwrapper.obs import PauliObservable
 
 
@@ -8,11 +8,23 @@ class Operator:
 
 
 class PauliTimeEvolution(Operator):
-    def __init__(self, pauli: PauliObservable, t):
+    def __init__(self, pauli: PauliObservable, t, cachable=True):
         self.pauli = pauli
         self.t = t
+        self.cache = None
+        self.cachable = cachable
 
     def add_circuit(self, qc: QWrapper):
+        if not self.cachable or not isinstance(qc, QulacsCircuit):
+            self._do_add_circuit(qc)
+        else:
+            if self.cache is None:
+                qg = QulacsGate()
+                self._do_add_circuit(qg)
+                self.cache = qg
+            self.cache.apply(qc)
+
+    def _do_add_circuit(self, qc: QWrapper):
         self._rotate_basis(qc)
         qc.barrier()
         pairs = self._cnot_pairs()

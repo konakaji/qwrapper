@@ -2,6 +2,7 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit import Aer
 from qiskit import execute
 from qulacs import QuantumState, QuantumCircuit as QCircuit
+from qulacs.gate import H, S, Sdag, X, Y, Z, RX, RY, RZ, CNOT, CZ, merge
 from abc import ABC, abstractmethod
 from qwrapper.encoder import Encoder
 import random, math, numpy as np
@@ -155,7 +156,7 @@ class QWrapper(ABC):
 class QulacsCircuit(QWrapper):
     def __init__(self, nqubit, gpu=False):
         self.nqubit = nqubit
-        self.gpu = True
+        self.gpu = gpu
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
         self._ref_state = None
@@ -446,6 +447,107 @@ class QiskitCircuit(QWrapper):
             samples.extend([k for _ in range(c)])
         random.shuffle(samples)
         return samples
+
+
+class QulacsGate(QWrapper):
+    def __init__(self):
+        self._gates = []
+        self._cache = None
+
+    def apply(self, qc: QulacsCircuit):
+        gate = self._compile()
+        if gate is not None:
+            qc.circuit.add_gate(gate)
+
+    def _compile(self):
+        if self._cache is not None:
+            return self._cache
+        if len(self._gates) == 0:
+            return None
+        gate = self._gates[0]
+        for g in self._gates[1:]:
+            gate = merge(gate, g)
+        self._cache = gate
+        return self._cache
+
+    def h(self, index):
+        self._gates.append(H(index))
+
+    def s(self, index):
+        self._gates.append(S(index))
+
+    def sdag(self, index):
+        self._gates.append(Sdag(index))
+
+    def x(self, index):
+        self._gates.append(X(index))
+
+    def y(self, index):
+        self._gates.append(Y(index))
+
+    def z(self, index):
+        self._gates.append(Z(index))
+
+    def rx(self, theta, index):
+        self._gates.append(RX(index, -theta))
+
+    def ry(self, theta, index):
+        self._gates.append(RY(index, -theta))
+
+    def rz(self, theta, index):
+        self._gates.append(RZ(index, -theta))
+
+    def cnot(self, c_index, t_index):
+        self._gates.append(CNOT(c_index, t_index))
+
+    def cy(self, c_index, t_index):
+        self.sdag(c_index)
+        self.cx(c_index, t_index)
+        self.s(c_index)
+
+    def cz(self, c_index, t_index):
+        self._gates.append(CZ(c_index, t_index))
+
+    def barrier(self):
+        pass
+
+    def get_async_samples(self, nshot):
+        raise NotImplementedError('not supported.')
+
+    def measure_all(self):
+        raise NotImplementedError('not supported.')
+
+    def get_q_register(self):
+        raise NotImplementedError('not supported.')
+
+    def draw(self, output="mpl"):
+        pass
+
+    def draw_and_show(self):
+        pass
+
+    def get_samples(self, nshot):
+        raise NotImplementedError('not supported.')
+
+    def get_counts(self, nshot):
+        raise NotImplementedError('not supported.')
+
+    def post_select(self, target, index):
+        raise NotImplementedError('not supported.')
+
+    def get_state_vector(self):
+        raise NotImplementedError('not supported.')
+
+    @classmethod
+    def execute_post_selects(cls, vector, post_selects, n_qubit):
+        raise NotImplementedError('not supported.')
+
+    @classmethod
+    def execute_post_select(cls, state_vector, i, bit, n_qubit):
+        raise NotImplementedError('not supported.')
+
+    def copy(self):
+        raise NotImplementedError('not supported.')
 
 
 def init_circuit(nqubit, tool) -> QWrapper:
