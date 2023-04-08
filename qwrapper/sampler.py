@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import random
 import math
+from scipy.stats import rv_discrete
 
 
 class ImportantSampler(ABC):
@@ -10,6 +11,18 @@ class ImportantSampler(ABC):
 
     def sample_indices(self, count):
         return [self.sample_index() for _ in range(count)]
+
+
+class FasterImportantSampler(ImportantSampler):
+    def __init__(self, coeffs):
+        self.indices = [j for j in range(len(coeffs))]
+        self.p = coeffs / sum(coeffs)
+
+    def sample_index(self):
+        return self.sample_indices(1)[0]
+
+    def sample_indices(self, count):
+        return rv_discrete(values=(self.indices, self.p)).rvs(size=count)
 
 
 class DefaultImportantSampler(ImportantSampler):
