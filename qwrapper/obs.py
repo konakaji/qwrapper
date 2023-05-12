@@ -42,6 +42,29 @@ class PauliObservable:
         vector = qc.get_state_vector()
         return vector.T.conjugate().dot(self.matrix).dot(vector).item(0, 0).real
 
+    def add_circuit(self, qc: QWrapper):
+        index = 0
+        for c in self.p_string:
+            if c == "X":
+                qc.x(index)
+            elif c == "Y":
+                qc.y(index)
+            elif c == "Z":
+                qc.z(index)
+            index += 1
+
+    def add_controlled_circuit(self, control, targets, qc: QWrapper):
+        index = 0
+        for c in self.p_string:
+            target = targets[index]
+            if c == "X":
+                qc.cx(control, target)
+            elif c == "Y":
+                qc.cy(control, target)
+            elif c == "Z":
+                qc.cz(control, target)
+            index += 1
+
     def to_matrix(self):
         m = {"X": Pauli.X, "Y": Pauli.Y,
              "Z": Pauli.Z, "I": Pauli.I}
