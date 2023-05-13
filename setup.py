@@ -22,9 +22,9 @@ setuptools.setup(
         "qiskit>=0.30.0",
         "Qulacs>=0.3.0",
         "matplotlib>=3.0.0",
-        "pylatexenc>=2.0"
-        "qutip>=4.7.0"
-        "mayavi>=4.8.0"
+        "pylatexenc>=2.0",
+        "qutip>=4.7.0",
+        "mayavi>=4.8.0",
         "wxPython>=4.2.0"
     ],
     python_requires='>=3.6',
