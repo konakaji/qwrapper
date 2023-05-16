@@ -20,6 +20,10 @@ class PauliObservable:
         return PauliObservable(self._p_string, self._sign)
 
     @property
+    def nqubit(self):
+        return len(self.p_string)
+
+    @property
     def p_string(self):
         return self._p_string
 
