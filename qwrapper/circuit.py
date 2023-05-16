@@ -29,6 +29,9 @@ class Future:
 
 
 class QWrapper(ABC):
+    def __init__(self, nqubit):
+        self.nqubit = nqubit
+
     def cx(self, c_index, t_index):
         return self.cnot(c_index, t_index)
 
@@ -155,7 +158,7 @@ class QWrapper(ABC):
 
 class QulacsCircuit(QWrapper):
     def __init__(self, nqubit, gpu=False):
-        self.nqubit = nqubit
+        super().__init__(nqubit)
         self.gpu = gpu
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
@@ -307,7 +310,7 @@ class QulacsCircuit(QWrapper):
 
 class QiskitCircuit(QWrapper):
     def __init__(self, nqubit):
-        self.nqubit = nqubit
+        super().__init__(nqubit)
         self._qr = QuantumRegister(nqubit)
         self.qc = QuantumCircuit(self._qr, ClassicalRegister(nqubit))
         self.encoder = Encoder(self.nqubit)
@@ -450,7 +453,8 @@ class QiskitCircuit(QWrapper):
 
 
 class QulacsGate(QWrapper):
-    def __init__(self):
+    def __init__(self, nqubit):
+        super().__init__(nqubit)
         self._gates = []
         self._cache = None
 

@@ -34,7 +34,7 @@ class PauliObservable:
         result = 0
         for sample in qc.get_samples(nshot):
             result += QUtil.parity(sample, excludes)
-        return result / nshot
+        return self.sign * result / nshot
 
     def exact_value(self, qc: QWrapper):
         if self.matrix is None:
