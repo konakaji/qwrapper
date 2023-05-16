@@ -19,7 +19,7 @@ class PauliTimeEvolution(Operator):
             self._do_add_circuit(qc)
         else:
             if self.cache is None:
-                qg = QulacsGate()
+                qg = QulacsGate(qc.nqubit)
                 self._do_add_circuit(qg)
                 self.cache = qg
             self.cache.apply(qc)
