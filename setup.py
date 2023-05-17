@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="qwrapper",
-    version="0.4.12",
+    version="0.4.13",
     author="kouhei nakaji",
     author_email="nakajijiji@gmail.com",
     description="You can receive the message 'Hello!!!'",
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     install_requires=[
         "qiskit>=0.30.0",
-        "Qulacs>=0.3.0",
+        "Qulacs>=0.3.0,<=0.5",
         "matplotlib>=3.0.0",
         "pylatexenc>=2.0",
         "qutip>=4.7.0"
