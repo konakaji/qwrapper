@@ -171,6 +171,9 @@ class QulacsCircuit(QWrapper):
         result._ref_state = self._ref_state
         return result
 
+    def add_gate(self, gate):
+        self.circuit.add_gate(gate)
+
     def h(self, index):
         self.circuit.add_H_gate(index)
 

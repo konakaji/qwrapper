@@ -15,9 +15,27 @@ class TestControllablePauli(TestCase):
         self.assertEquals("XXZ", pauli.p_string)
 
     def test_time_evolution(self):
-        pauli = PauliObservable("XXI", 1)
-        evolution = PauliTimeEvolution(pauli, 1)
-        qc = init_circuit(3, "qulacs")
-        evolution.add_circuit(qc)
-        evolution.add_circuit(qc)
-        print(pauli.get_value(qc, 10))
+        import time
+
+        pauli = PauliObservable("ZYIIII", 1)
+        start = time.time()
+        evolution = PauliTimeEvolution(pauli, 0.3, cachable=False)
+        qc = init_circuit(6, "qulacs")
+        qc.h(0)
+        qc.h(1)
+
+        obs = PauliObservable("ZZIIII")
+        for _ in range(1000):
+            evolution.add_circuit(qc)
+        print(obs.get_value(qc, 0))
+        print(time.time() - start)
+
+        start = time.time()
+        evolution = PauliTimeEvolution(pauli, 0.3, cachable=True)
+        qc = init_circuit(6, "qulacs")
+        qc.h(0)
+        qc.h(1)
+        for _ in range(1000):
+            evolution.add_circuit(qc)
+        print(obs.get_value(qc, 0))
+        print(time.time() - start)

@@ -1,5 +1,6 @@
-from qwrapper.circuit import QWrapper, QulacsCircuit, QulacsGate
+from qwrapper.circuit import QWrapper, QulacsCircuit
 from qwrapper.obs import PauliObservable
+from qulacs.gate import PauliRotation
 
 
 class Operator:
@@ -15,14 +16,27 @@ class PauliTimeEvolution(Operator):
         self.cachable = cachable
 
     def add_circuit(self, qc: QWrapper):
-        if not self.cachable or not isinstance(qc, QulacsCircuit):
+        if not isinstance(qc, QulacsCircuit) or not self.cachable:
             self._do_add_circuit(qc)
         else:
             if self.cache is None:
-                qg = QulacsGate(qc.nqubit)
-                self._do_add_circuit(qg)
-                self.cache = qg
-            self.cache.apply(qc)
+                self.cache = self._build_gate()
+            qc.add_gate(self.cache)
+
+    def _build_gate(self):
+        array = []
+        pauli_indices = []
+        for j, c in enumerate(self.pauli.p_string):
+            if c == 'X':
+                pauli_indices.append(1)
+                array.append(j)
+            elif c == 'Y':
+                pauli_indices.append(2)
+                array.append(j)
+            elif c == 'Z':
+                pauli_indices.append(3)
+                array.append(j)
+        return PauliRotation(array, pauli_indices, 2 * self.pauli.sign * self.t)
 
     def _do_add_circuit(self, qc: QWrapper):
         self._rotate_basis(qc)

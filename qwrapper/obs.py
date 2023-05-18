@@ -1,5 +1,6 @@
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
+from qulacs import QuantumState, Observable
 import numpy as np
 
 
@@ -15,6 +16,7 @@ class PauliObservable:
         self._p_string = p_string
         self._sign = sign
         self.matrix = None
+        self.qulacs_obs = None
 
     def copy(self):
         return PauliObservable(self._p_string, self._sign)
@@ -41,10 +43,27 @@ class PauliObservable:
         return self.sign * result / nshot
 
     def exact_value(self, qc: QWrapper):
+        from qwrapper.circuit import QulacsCircuit
+        if isinstance(qc, QulacsCircuit):
+            if self.qulacs_obs is None:
+                self.qulacs_obs = self._build_qulacs_obs()
+            return self.qulacs_obs.get_expectation_value(qc.get_state())
         if self.matrix is None:
             self.matrix = self.to_matrix()
         vector = qc.get_state_vector()
         return vector.T.conjugate().dot(self.matrix).dot(vector).item(0, 0).real
+
+    def _build_qulacs_obs(self):
+        observable = Observable(len(self.p_string))
+        array = []
+        for j, c in enumerate(self.p_string):
+            if c == "I":
+                continue
+            array.append(c)
+            array.append(str(j))
+        operator_str = " ".join(array)
+        observable.add_operator(self.sign, operator_str)
+        return observable
 
     def add_circuit(self, qc: QWrapper):
         index = 0
