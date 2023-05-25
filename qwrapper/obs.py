@@ -153,7 +153,7 @@ class Hamiltonian(Obs):
 
     def get_value(self, qc: QWrapper, nshot):
         if nshot == 0:
-            self.exact_value(qc)
+            return self.exact_value(qc)
         raise NotImplementedError("get_value for finite shot is not implemented in Hamiltonian class.")
 
     def exact_value(self, qc: QWrapper):
