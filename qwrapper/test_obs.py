@@ -52,3 +52,15 @@ class TestPauliObservable(TestCase):
         h1 = Hamiltonian([0.5, 0.7], [obs, obs2], 3)
 
         self.assertAlmostEquals(h1.exact_value(qc1), h1.exact_value(qc2))
+
+
+class TestHamiltonian(TestCase):
+    def test_gen_ancilla_hamiltonian(self):
+        obs = PauliObservable("IIZ", sign=-1)
+        obs2 = PauliObservable("ZZY", sign=1)
+        h = Hamiltonian([0.5, 0.7], [obs, obs2], 3)
+        h1 = h.gen_ancilla_hamiltonian("X")
+        self.assertEquals(h1.hs[0], 0.5)
+        self.assertEquals(h1.hs[1], 0.7)
+        self.assertEquals(h1.paulis[0].p_string, "IIZX")
+        self.assertEquals(h1.paulis[1].p_string, "ZZYX")

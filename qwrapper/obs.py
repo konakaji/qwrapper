@@ -1,3 +1,5 @@
+import abc
+from abc import abstractmethod
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
 from qulacs import QuantumState, Observable
@@ -22,7 +24,13 @@ class Pauli:
     I = np.matrix([[1, 0], [0, 1]])
 
 
-class PauliObservable:
+class Obs(abc.ABC):
+    @abstractmethod
+    def exact_value(self, qc: QWrapper):
+        pass
+
+
+class PauliObservable(Obs):
     def __init__(self, p_string, sign=1):
         self._p_string = p_string
         self._sign = sign
@@ -122,7 +130,7 @@ class PauliObservable:
         return f'{sign_str}{self.p_string}'
 
 
-class Hamiltonian:
+class Hamiltonian(Obs):
     def __init__(self, hs, paulis: [PauliObservable], nqubit):
         self._hs = hs
         self._paulis = paulis
@@ -183,6 +191,12 @@ class Hamiltonian:
         for h in self._hs:
             result += h
         return result
+
+    def gen_ancilla_hamiltonian(self, ancilla_obs="X"):
+        paulis = []
+        for p in self._paulis:
+            paulis.append(PauliObservable(p.p_string + ancilla_obs, p.sign))
+        return Hamiltonian(self.hs, paulis, self.nqubit + 1)
 
     def _build_qulacs_obs(self):
         observable = Observable(self.nqubit)
