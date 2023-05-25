@@ -1,7 +1,18 @@
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
 from qulacs import QuantumState, Observable
+from qwrapper.circuit import QulacsCircuit
 import numpy as np
+
+
+def build_operator_str(p_string):
+    array = []
+    for j, c in enumerate(p_string):
+        if c == "I":
+            continue
+        array.append(c)
+        array.append(str(j))
+    return " ".join(array)
 
 
 class Pauli:
@@ -43,7 +54,6 @@ class PauliObservable:
         return self.sign * result / nshot
 
     def exact_value(self, qc: QWrapper):
-        from qwrapper.circuit import QulacsCircuit
         if isinstance(qc, QulacsCircuit):
             if self.qulacs_obs is None:
                 self.qulacs_obs = self._build_qulacs_obs()
@@ -55,14 +65,7 @@ class PauliObservable:
 
     def _build_qulacs_obs(self):
         observable = Observable(len(self.p_string))
-        array = []
-        for j, c in enumerate(self.p_string):
-            if c == "I":
-                continue
-            array.append(c)
-            array.append(str(j))
-        operator_str = " ".join(array)
-        observable.add_operator(self.sign, operator_str)
+        observable.add_operator(self.sign, build_operator_str(self.p_string))
         return observable
 
     def add_circuit(self, qc: QWrapper):
@@ -124,6 +127,8 @@ class Hamiltonian:
         self._hs = hs
         self._paulis = paulis
         self._nqubit = nqubit
+        self._qulacs_obs = None
+        self._matrix = None
 
     def save(self, path):
         path = path.replace(" ", "-")
@@ -133,6 +138,19 @@ class Hamiltonian:
 
     def set_hs(self, hs):
         self._hs = hs
+
+    def exact_value(self, qc: QWrapper):
+        if isinstance(qc, QulacsCircuit):
+            if self._qulacs_obs is None:
+                self._qulacs_obs = self._build_qulacs_obs()
+            return self._qulacs_obs.get_expectation_value(qc.get_state())
+        if self._matrix is None:
+            matrix = np.diag(np.zeros(pow(2, self.nqubit), dtype=np.complex128))
+            for h, p in zip(self._hs, self._paulis):
+                matrix += h * p.to_matrix()
+            self._matrix = matrix
+        vector = qc.get_state_vector()
+        return vector.T.conjugate().dot(self._matrix).dot(vector).real
 
     @classmethod
     def load(cls, path):
@@ -165,6 +183,12 @@ class Hamiltonian:
         for h in self._hs:
             result += h
         return result
+
+    def _build_qulacs_obs(self):
+        observable = Observable(self.nqubit)
+        for h, p in zip(self._hs, self._paulis):
+            observable.add_operator(h * p.sign, build_operator_str(p.p_string))
+        return observable
 
     def __repr__(self) -> str:
         result = ""

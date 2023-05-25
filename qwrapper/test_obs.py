@@ -1,6 +1,6 @@
 from unittest import TestCase
 from qwrapper.circuit import init_circuit
-from qwrapper.obs import PauliObservable
+from qwrapper.obs import PauliObservable, Hamiltonian
 
 
 class TestPauliObservable(TestCase):
@@ -36,3 +36,19 @@ class TestPauliObservable(TestCase):
         qc.x(1)
         obs = PauliObservable("IIZ", sign=-1)
         self.assertAlmostEqual(-1, obs.exact_value(qc))
+
+        qc1 = init_circuit(3, "qulacs")
+        qc1.h(0)
+        qc1.rx(0.7, 1)
+        qc1.rx(0.5, 2)
+
+        qc2 = init_circuit(3, "qiskit")
+        qc2.h(0)
+        qc2.rx(0.7, 1)
+        qc2.rx(0.5, 2)
+
+        obs = PauliObservable("IIZ", sign=-1)
+        obs2 = PauliObservable("ZZY", sign=1)
+        h1 = Hamiltonian([0.5, 0.7], [obs, obs2], 3)
+
+        self.assertAlmostEquals(h1.exact_value(qc1), h1.exact_value(qc2))
