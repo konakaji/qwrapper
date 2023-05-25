@@ -26,6 +26,10 @@ class Pauli:
 
 class Obs(abc.ABC):
     @abstractmethod
+    def get_value(self, qc: QWrapper, nshot):
+        pass
+
+    @abstractmethod
     def exact_value(self, qc: QWrapper):
         pass
 
@@ -146,6 +150,11 @@ class Hamiltonian(Obs):
 
     def set_hs(self, hs):
         self._hs = hs
+
+    def get_value(self, qc: QWrapper, nshot):
+        if nshot == 0:
+            self.exact_value(qc)
+        raise NotImplementedError("get_value for finite shot is not implemented in Hamiltonian class.")
 
     def exact_value(self, qc: QWrapper):
         if isinstance(qc, QulacsCircuit):
