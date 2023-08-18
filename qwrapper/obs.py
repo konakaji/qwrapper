@@ -135,13 +135,13 @@ class PauliObservable(Obs):
 
 
 class Hamiltonian(Obs):
-    def __init__(self, hs, paulis: [PauliObservable], nqubit):
+    def __init__(self, hs, paulis: [PauliObservable], nqubit, identity=0):
         self._hs = hs
         self._paulis = paulis
         self._nqubit = nqubit
         self._qulacs_obs = None
         self._matrix = None
-        self._identity = 0
+        self._identity = identity
 
     def save(self, path):
         path = path.replace(" ", "-")
