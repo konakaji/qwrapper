@@ -1,3 +1,5 @@
+import numpy
+
 from qwrapper.obs import Hamiltonian
 from qwrapper.operator import ControllablePauli
 from numpy.linalg import eigh
@@ -61,7 +63,7 @@ def to_matrix_hamiltonian(hamiltonian: Hamiltonian):
         else:
             result += (h + 0j) * o.to_matrix()
         count += 1
-    return result
+    return result + numpy.diag([hamiltonian._identity] * len(result))
 
 
 def compute_ground_state(hamiltonian: Hamiltonian):

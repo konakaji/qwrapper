@@ -141,6 +141,7 @@ class Hamiltonian(Obs):
         self._nqubit = nqubit
         self._qulacs_obs = None
         self._matrix = None
+        self._identity = 0
 
     def save(self, path):
         path = path.replace(" ", "-")
@@ -167,7 +168,7 @@ class Hamiltonian(Obs):
                 matrix += h * p.to_matrix()
             self._matrix = matrix
         vector = qc.get_state_vector()
-        return vector.T.conjugate().dot(self._matrix).dot(vector).real
+        return vector.T.conjugate().dot(self._matrix).dot(vector).real + self._identity
 
     @classmethod
     def load(cls, path):
