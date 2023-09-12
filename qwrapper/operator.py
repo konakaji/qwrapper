@@ -22,6 +22,7 @@ class PauliTimeEvolution(Operator):
             if self.cache is None:
                 self.cache = self._build_gate()
             qc.add_gate(self.cache)
+            qc.barrier()
 
     def _build_gate(self):
         array = []
