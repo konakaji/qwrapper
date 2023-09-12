@@ -17,12 +17,12 @@ class PauliTimeEvolution(Operator):
 
     def add_circuit(self, qc: QWrapper):
         if not isinstance(qc, QulacsCircuit) or not self.cachable:
+            qc.barrier()
             self._do_add_circuit(qc)
         else:
             if self.cache is None:
                 self.cache = self._build_gate()
             qc.add_gate(self.cache)
-            qc.barrier()
 
     def _build_gate(self):
         array = []
