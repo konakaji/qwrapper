@@ -41,21 +41,17 @@ class PauliTimeEvolution(Operator):
 
     def _do_add_circuit(self, qc: QWrapper):
         self._rotate_basis(qc)
-        qc.barrier()
         pairs = self._cnot_pairs()
         for pair in pairs:
             qc.cnot(pair[0], pair[1])
-        qc.barrier()
         index = self._last_nonidentity_index()
         if index is None:
             # identity
             return
         qc.rz(- 2 * self.pauli.sign * self.t, index)
-        qc.barrier()
         pairs.reverse()
         for pair in pairs:
             qc.cnot(pair[0], pair[1])
-        qc.barrier()
         self._rotate_basis(qc, inverse=True)
 
     def _rotate_basis(self, qc: QWrapper, inverse=False):
