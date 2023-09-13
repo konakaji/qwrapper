@@ -558,6 +558,10 @@ class QulacsGate(QWrapper):
 
 
 def init_circuit(nqubit, tool) -> QWrapper:
+    if not isinstance(tool, str):
+        tool.gatesToApply.clear()
+        return tool 
+    
     if tool == "qulacs":
         return QulacsCircuit(nqubit)
     elif tool == "qulacs-gpu":
