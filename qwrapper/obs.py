@@ -161,7 +161,7 @@ class Hamiltonian(Obs):
         if isinstance(qc, QulacsCircuit):
             if self._qulacs_obs is None:
                 self._qulacs_obs = self._build_qulacs_obs()
-            return self._qulacs_obs.get_expectation_value(qc.get_state())
+            return self._qulacs_obs.get_expectation_value(qc.get_state()) + self._identity
         if self._matrix is None:
             matrix = np.diag(np.zeros(pow(2, self.nqubit), dtype=np.complex128))
             for h, p in zip(self._hs, self._paulis):
