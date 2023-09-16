@@ -6,6 +6,7 @@ from qulacs.gate import H, S, Sdag, X, Y, Z, RX, RY, RZ, CNOT, CZ, merge
 from abc import ABC, abstractmethod
 from qwrapper.encoder import Encoder
 import random, math, numpy as np
+import cudaq 
 
 
 def from_bitstring(str):
@@ -163,6 +164,7 @@ class QulacsCircuit(QWrapper):
         self.circuit = QCircuit(nqubit)
         self.post_selects = {}
         self._ref_state = None
+        #print("Create Qulacs Circuit")
 
     def copy(self):
         result = QulacsCircuit(self.nqubit)
@@ -175,41 +177,53 @@ class QulacsCircuit(QWrapper):
         self.circuit.add_gate(gate)
 
     def h(self, index):
+        #print("h {}".format(index))
         self.circuit.add_H_gate(index)
 
     def s(self, index):
+        #print("s {}".format(index))
         self.circuit.add_S_gate(index)
 
     def sdag(self, index):
+        #print("sdg {}".format(index))
         self.circuit.add_Sdag_gate(index)
 
     def x(self, index):
+        #print("x {}".format(index))
         self.circuit.add_X_gate(index)
 
     def y(self, index):
+        #print("y {}".format(index))
         self.circuit.add_Y_gate(index)
 
     def z(self, index):
+        #print("z {}".format(index))
         self.circuit.add_Z_gate(index)
 
     def rx(self, theta, index):
+        #print("rx({}) {}".format(theta, index))
         self.circuit.add_RX_gate(index, -theta)
 
     def ry(self, theta, index):
+        #print("ry({}) {}".format(theta, index))
         self.circuit.add_RY_gate(index, -theta)
 
     def rz(self, theta, index):
+        #print("rz({}) {}".format(theta, index))
         self.circuit.add_RZ_gate(index, -theta)
 
     def cnot(self, c_index, t_index):
+        #print("cx {} {}".format(c_index, t_index))
         self.circuit.add_CNOT_gate(c_index, t_index)
 
     def cy(self, c_index, t_index):
+        #print("cy {} {}".format(c_index, t_index))
         self.sdag(t_index)
         self.cx(c_index, t_index)
         self.s(t_index)
 
     def cz(self, c_index, t_index):
+        #print("cz {} {}".format(c_index, t_index))
         self.circuit.add_CZ_gate(c_index, t_index)
 
     def get_q_register(self):
@@ -557,13 +571,104 @@ class QulacsGate(QWrapper):
         raise NotImplementedError('not supported.')
 
 
-def init_circuit(nqubit, tool) -> QWrapper:
-    if not isinstance(tool, str):
-        tool.gatesToApply.clear()
-        return tool 
+class CUDAQuantumCircuit(QWrapper):
+    def __init__(self, nqubit):
+        super().__init__(nqubit)
+        self.gatesToApply = []
+        #print("Create CUDAQ Circuit")
+        self.numQubits = nqubit 
+        self.qarg = cudaq.qvector(nqubit)
+
+    def copy(self):
+        raise NotImplementedError('cuda quantum copy - not supported.')
+
+    def h(self, index):
+        #print("h {}".format(index))
+        self.gatesToApply.append(lambda qarg : cudaq.h(qarg[index]))
+
+    def x(self, index):
+        #print("x {}".format(index))
+        self.gatesToApply.append(lambda qarg : cudaq.x(qarg[index]))
+
+    def y(self, index):
+        #print("y {}".format(index))
+        self.gatesToApply.append(lambda qarg : cudaq.y(qarg[index]))
+
+    def z(self, index):
+        #print("z {}".format(index))
+        self.gatesToApply.append(lambda qarg : cudaq.z(qarg[index]))
+
+    def s(self, index):
+        #print("s {}".format(index))
+        self.gatesToApply.append(lambda qarg : cudaq.s(qarg[index]))
+
+    def sdag(self, index):
+        #print("sdg {}".format(index))
+        self.gatesToApply.append(lambda qarg : cudaq.s.adj(qarg[index]))
+
+    def rx(self, theta, index):
+        #print("rx({}) {}".format(theta, index))
+        self.gatesToApply.append(lambda qarg : cudaq.rx(theta, qarg[index]))
+
+    def ry(self, theta, index):
+        #print("ry({}) {}".format(theta, index))
+        self.gatesToApply.append(lambda qarg : cudaq.ry(theta, qarg[index]))
+
+    def rz(self, theta, index):
+        #print("rz({}) {}".format(theta, index))
+        self.gatesToApply.append(lambda qarg : cudaq.rz(theta, qarg[index]))
+
+    def cnot(self, c_index, t_index):
+        #print("cx {} {}".format(c_index, t_index))
+        self.gatesToApply.append(lambda qarg : cudaq.x.ctrl(qarg[c_index], qarg[t_index]))
+
+    def cy(self, c_index, t_index):
+        #print("cy {} {}".format(c_index, t_index))
+        self.gatesToApply.append(lambda qarg : cudaq.y.ctrl(qarg[c_index], qarg[t_index]))
+
+    def cz(self, c_index, t_index):
+        #print("cz {} {}".format(c_index, t_index))
+        self.gatesToApply.append(lambda qarg : cudaq.z.ctrl(qarg[c_index], qarg[t_index]))
+
+    def barrier(self):
+        pass
+    def draw(self, output="mpl"):
+        pass
+
+    def draw_and_show(self):
+        pass
+
+    def get_q_register(self):
+        raise NotImplementedError('not supported.')
+    def post_select(self, index: int, target):
+        pass 
     
+    def measure_all(self):
+        pass
+        # self.kernel.mz(self.qubits)
+
+
+    def get_async_samples(self, nshot) :
+        raise NotImplementedError('cuda quantum async_samples - not supported.')
+
+    def get_samples(self, nshot):
+        raise NotImplementedError('cuda quantum sanokes - not supported.')
+
+
+    def get_counts(self, nshot):
+        raise NotImplementedError('cuda quantum counts - not supported.')
+
+    def get_state(self):
+        raise NotImplementedError('cuda quantum get_state - not supported.')
+
+    def get_state_vector(self):
+        raise NotImplementedError('cuda quantum get_state_vector - not supported.')
+
+def init_circuit(nqubit, tool) -> QWrapper:
     if tool == "qulacs":
         return QulacsCircuit(nqubit)
     elif tool == "qulacs-gpu":
         return QulacsCircuit(nqubit, gpu=True)
+    elif tool == 'cudaq':
+        return CUDAQuantumCircuit(nqubit)
     return QiskitCircuit(nqubit)

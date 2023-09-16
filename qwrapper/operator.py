@@ -1,7 +1,6 @@
-from qwrapper.circuit import QWrapper, QulacsCircuit
+from qwrapper.circuit import QWrapper, QulacsCircuit, CUDAQuantumCircuit
 from qwrapper.obs import PauliObservable
 from qulacs.gate import PauliRotation
-from qwrapper.cudaq import CUDAQuantumCircuit
 import cudaq
 
 
@@ -20,7 +19,7 @@ class PauliTimeEvolution(Operator):
     def add_circuit(self, qc: QWrapper):
         if isinstance(qc, CUDAQuantumCircuit):
             qc.gatesToApply.append(lambda qarg: cudaq.exp_pauli(
-                qarg, 2 * self.pauli.sign * self.t, cudaq.SpinOperator.from_word(self.pauli.p_string)))
+                qarg, self.pauli.sign * self.t, cudaq.SpinOperator.from_word(self.pauli.p_string)))
             return
 
         if not isinstance(qc, QulacsCircuit) or not self.cachable:

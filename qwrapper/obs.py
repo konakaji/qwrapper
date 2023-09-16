@@ -2,8 +2,8 @@ import abc
 from abc import abstractmethod
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
-from qulacs import Observable
-from qwrapper.circuit import QulacsCircuit
+from qulacs import QuantumState, Observable
+from qwrapper.circuit import QulacsCircuit, CUDAQuantumCircuit
 
 try:
     import cupy as np
@@ -11,7 +11,6 @@ except ModuleNotFoundError:
     print("cupy not found. numpy is used.")
     import numpy as np
 
-from qwrapper.cudaq import CUDAQuantumCircuit
 import cudaq 
 
 def build_operator_str(p_string):
@@ -174,8 +173,8 @@ class Hamiltonian(Obs):
                 q = cudaq.qvector(qc.numQubits)
                 [op(q) for op in qc.gatesToApply]
             
-            print("\tCompute <H> cudaq, qpu_id = {}".format(kwargs['qpu_id'] if 'qpu_id' in kwargs else 0))
             if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
+                print("Async exec on qpu {}".format(kwargs['qpu_id']))
                 return cudaq.observe_async(eval, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
             
             return cudaq.observe(eval, self._cudaq_obs).expectation_z()
@@ -239,9 +238,9 @@ class Hamiltonian(Obs):
     def _build_cudaq_obs(self):
         observable = cudaq.SpinOperator()
         for h, p in zip(self._hs, self._paulis):
-            print(h, p)
             observable += h * p.sign * cudaq.SpinOperator.from_word(p.p_string)
         return observable - cudaq.SpinOperator()
+
     
     def __repr__(self) -> str:
         result = ""
