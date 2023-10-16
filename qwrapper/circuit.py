@@ -577,58 +577,59 @@ class CUDAQuantumCircuit(QWrapper):
         self.gatesToApply = []
         #print("Create CUDAQ Circuit")
         self.numQubits = nqubit 
-        self.qarg = cudaq.qvector(nqubit)
+        self.kernel = cudaq.make_kernel()
+        self.qarg = self.kernel.qalloc(self.numQubits)
 
     def copy(self):
         raise NotImplementedError('cuda quantum copy - not supported.')
 
     def h(self, index):
         #print("h {}".format(index))
-        self.gatesToApply.append(lambda qarg : cudaq.h(qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.h(qarg[index]))
 
     def x(self, index):
         #print("x {}".format(index))
-        self.gatesToApply.append(lambda qarg : cudaq.x(qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.x(qarg[index]))
 
     def y(self, index):
         #print("y {}".format(index))
-        self.gatesToApply.append(lambda qarg : cudaq.y(qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.y(qarg[index]))
 
     def z(self, index):
         #print("z {}".format(index))
-        self.gatesToApply.append(lambda qarg : cudaq.z(qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.z(qarg[index]))
 
     def s(self, index):
         #print("s {}".format(index))
-        self.gatesToApply.append(lambda qarg : cudaq.s(qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.s(qarg[index]))
 
     def sdag(self, index):
         #print("sdg {}".format(index))
-        self.gatesToApply.append(lambda qarg : cudaq.s.adj(qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.sdg(qarg[index]))
 
     def rx(self, theta, index):
         #print("rx({}) {}".format(theta, index))
-        self.gatesToApply.append(lambda qarg : cudaq.rx(theta, qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.rx(theta, qarg[index]))
 
     def ry(self, theta, index):
         #print("ry({}) {}".format(theta, index))
-        self.gatesToApply.append(lambda qarg : cudaq.ry(theta, qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.ry(theta, qarg[index]))
 
     def rz(self, theta, index):
         #print("rz({}) {}".format(theta, index))
-        self.gatesToApply.append(lambda qarg : cudaq.rz(theta, qarg[index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.rz(theta, qarg[index]))
 
     def cnot(self, c_index, t_index):
         #print("cx {} {}".format(c_index, t_index))
-        self.gatesToApply.append(lambda qarg : cudaq.x.ctrl(qarg[c_index], qarg[t_index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.cx(qarg[c_index], qarg[t_index]))
 
     def cy(self, c_index, t_index):
         #print("cy {} {}".format(c_index, t_index))
-        self.gatesToApply.append(lambda qarg : cudaq.y.ctrl(qarg[c_index], qarg[t_index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.cy(qarg[c_index], qarg[t_index]))
 
     def cz(self, c_index, t_index):
         #print("cz {} {}".format(c_index, t_index))
-        self.gatesToApply.append(lambda qarg : cudaq.z.ctrl(qarg[c_index], qarg[t_index]))
+        self.gatesToApply.append(lambda qarg : self.kernel.cz(qarg[c_index], qarg[t_index]))
 
     def barrier(self):
         pass

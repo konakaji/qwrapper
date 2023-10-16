@@ -18,8 +18,9 @@ class PauliTimeEvolution(Operator):
 
     def add_circuit(self, qc: QWrapper):
         if isinstance(qc, CUDAQuantumCircuit):
-            qc.gatesToApply.append(lambda qarg: cudaq.exp_pauli(
-                qarg, self.pauli.sign * self.t, cudaq.SpinOperator.from_word(self.pauli.p_string)))
+            if self.pauli.p_string != len(self.pauli.p_string) * 'I':
+                qc.gatesToApply.append(lambda qarg: qc.kernel.exp_pauli(
+                    self.pauli.sign * self.t, qarg, self.pauli.p_string))
             return
 
         if not isinstance(qc, QulacsCircuit) or not self.cachable:

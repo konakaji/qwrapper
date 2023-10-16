@@ -168,16 +168,14 @@ class Hamiltonian(Obs):
         if isinstance(qc, CUDAQuantumCircuit):
             if self._cudaq_obs is None:
                 self._cudaq_obs = self._build_cudaq_obs()
-            @cudaq.kernel
-            def eval():
-                q = cudaq.qvector(qc.numQubits)
-                [op(q) for op in qc.gatesToApply]
+            for op in qc.gatesToApply:
+                op(qc.qarg)
             
             if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
                 print("Async exec on qpu {}".format(kwargs['qpu_id']))
-                return cudaq.observe_async(eval, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
+                return cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
             
-            return cudaq.observe(eval, self._cudaq_obs).expectation_z()
+            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z()
 
         if isinstance(qc, QulacsCircuit):
             if self._qulacs_obs is None:
