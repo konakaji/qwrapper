@@ -8,6 +8,7 @@ from qwrapper.circuit import QulacsCircuit
 try:
     import cupy as np
 except ModuleNotFoundError:
+    print("cupy not found. numpy is used.")
     import numpy as np
 
 
@@ -22,10 +23,10 @@ def build_operator_str(p_string):
 
 
 class Pauli:
-    X = np.matrix([[0, 1], [1, 0]])
-    Y = np.matrix([[0, -1j], [1j, 0]])
-    Z = np.matrix([[1, 0], [0, -1]])
-    I = np.matrix([[1, 0], [0, 1]])
+    X = np.array([[0, 1], [1, 0]])
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.array([[1, 0], [0, -1]])
+    I = np.array([[1, 0], [0, 1]])
 
 
 class Obs(abc.ABC):

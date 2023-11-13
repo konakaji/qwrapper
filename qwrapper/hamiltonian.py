@@ -1,13 +1,12 @@
 import logging
 
-import numpy
-
 from qwrapper.obs import Hamiltonian
 from qwrapper.operator import ControllablePauli
 
 try:
     import cupy as np
 except ModuleNotFoundError:
+    print("cupy not found. numpy is used.")
     import numpy as np
 
 
@@ -69,7 +68,7 @@ def to_matrix_hamiltonian(hamiltonian: Hamiltonian):
         else:
             result += (h + 0j) * o.to_matrix()
         count += 1
-    return result + numpy.diag([hamiltonian._identity] * len(result))
+    return result + np.diag([hamiltonian._identity] * len(result))
 
 
 def compute_ground_state(hamiltonian: Hamiltonian):
