@@ -72,4 +72,7 @@ def to_matrix_hamiltonian(hamiltonian: Hamiltonian):
 
 
 def compute_ground_state(hamiltonian: Hamiltonian):
-    return min(np.linalg.eigh(to_matrix_hamiltonian(hamiltonian))[0])
+    value = min(np.linalg.eigh(to_matrix_hamiltonian(hamiltonian))[0])
+    if type(value).__name__ == "ndarray":
+        return value.item()
+    return value
