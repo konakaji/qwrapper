@@ -1,8 +1,14 @@
+import logging
+
 import numpy
 
 from qwrapper.obs import Hamiltonian
 from qwrapper.operator import ControllablePauli
-from numpy.linalg import eigh
+
+try:
+    import cupy as np
+except ModuleNotFoundError:
+    import numpy as np
 
 
 class HeisenbergModel(Hamiltonian):
@@ -67,4 +73,4 @@ def to_matrix_hamiltonian(hamiltonian: Hamiltonian):
 
 
 def compute_ground_state(hamiltonian: Hamiltonian):
-    return min(eigh(to_matrix_hamiltonian(hamiltonian))[0])
+    return min(np.linalg.eigh(to_matrix_hamiltonian(hamiltonian))[0])

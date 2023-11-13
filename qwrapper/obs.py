@@ -2,9 +2,13 @@ import abc
 from abc import abstractmethod
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
-from qulacs import QuantumState, Observable
+from qulacs import Observable
 from qwrapper.circuit import QulacsCircuit
-import numpy as np
+
+try:
+    import cupy as np
+except ModuleNotFoundError:
+    import numpy as np
 
 
 def build_operator_str(p_string):
