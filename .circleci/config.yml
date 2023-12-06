@@ -3,10 +3,8 @@
 version: 2.1
 jobs:
   build:
-    machine:
-      image: gpu.nvidia.small.multi
-#    docker:
-#      - image: cimg/python:3.8  # You can change the Python version as needed
+    docker:
+      - image: cimg/python:3.8  # You can change the Python version as needed
     steps:
       - checkout
       - run:
