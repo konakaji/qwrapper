@@ -1,6 +1,6 @@
 qiskit>=0.30.0
 qiskit-aer>=0.10.4
-Qulacs>=0.3.0
+Qulacs>=0.3.0,<=0.5
 matplotlib>=3.0.0
 pylatexenc>=2.0
 qutip>=4.7.0
