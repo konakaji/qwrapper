@@ -5,7 +5,7 @@ jobs:
   build:
     machine:
       image: linux-cuda-12:default
-      resource_class: gpu.nvidia.medium
+      resource_class: gpu.nvidia.small.multi
 #    docker:
 #      - image: cimg/python:3.8  # You can change the Python version as needed
     steps:
