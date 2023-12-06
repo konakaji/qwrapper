@@ -1,6 +1,16 @@
 from unittest import TestCase
 from qwrapper.circuit import init_circuit
 from qwrapper.obs import PauliObservable, Hamiltonian
+from qwrapper.obs import Future
+
+
+class TestFuture(TestCase):
+    def test_get(self):
+        def do_get():
+            return 1.5
+
+        future = Future(do_get)
+        self.assertEquals(4.5, 3 * future.get())
 
 
 class TestPauliObservable(TestCase):
