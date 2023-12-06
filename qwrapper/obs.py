@@ -2,8 +2,8 @@ import abc
 from abc import abstractmethod
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
-from qulacs import Observable
-from qwrapper.circuit import QulacsCircuit
+from qulacs import QuantumState, Observable
+from qwrapper.circuit import QulacsCircuit, CUDAQuantumCircuit
 
 try:
     import cupy as np
@@ -11,6 +11,7 @@ except ModuleNotFoundError:
     print("cupy not found. numpy is used.")
     import numpy as np
 
+import cudaq 
 
 def build_operator_str(p_string):
     array = []
@@ -70,7 +71,7 @@ class PauliObservable(Obs):
             result += QUtil.parity(sample, excludes)
         return self.sign * result / nshot
 
-    def exact_value(self, qc: QWrapper):
+    def exact_value(self, qc: QWrapper):                                      
         if isinstance(qc, QulacsCircuit):
             if self.qulacs_obs is None:
                 self.qulacs_obs = self._build_qulacs_obs()
@@ -147,6 +148,7 @@ class Hamiltonian(Obs):
         self._qulacs_obs = None
         self._matrix = None
         self._identity = identity
+        self._cudaq_obs = None
 
     def save(self, path):
         path = path.replace(" ", "-")
@@ -157,12 +159,24 @@ class Hamiltonian(Obs):
     def set_hs(self, hs):
         self._hs = hs
 
-    def get_value(self, qc: QWrapper, nshot):
+    def get_value(self, qc: QWrapper, nshot, **kwargs):
         if nshot == 0:
-            return self.exact_value(qc)
+            return self.exact_value(qc, **kwargs)
         raise NotImplementedError("get_value for finite shot is not implemented in Hamiltonian class.")
 
-    def exact_value(self, qc: QWrapper):
+    def exact_value(self, qc: QWrapper, **kwargs):
+        if isinstance(qc, CUDAQuantumCircuit):
+            if self._cudaq_obs is None:
+                self._cudaq_obs = self._build_cudaq_obs()
+            for op in qc.gatesToApply:
+                op(qc.qarg)
+            
+            if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
+                print("Async exec on qpu {}".format(kwargs['qpu_id']))
+                return cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
+            
+            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z()
+
         if isinstance(qc, QulacsCircuit):
             if self._qulacs_obs is None:
                 self._qulacs_obs = self._build_qulacs_obs()
@@ -218,7 +232,14 @@ class Hamiltonian(Obs):
         for h, p in zip(self._hs, self._paulis):
             observable.add_operator(h * p.sign, build_operator_str(p.p_string))
         return observable
+    
+    def _build_cudaq_obs(self):
+        observable = cudaq.SpinOperator()
+        for h, p in zip(self._hs, self._paulis):
+            observable += h * p.sign * cudaq.SpinOperator.from_word(p.p_string)
+        return observable - cudaq.SpinOperator()
 
+    
     def __repr__(self) -> str:
         result = ""
         result += ",".join([p.p_string for p in self._paulis])
