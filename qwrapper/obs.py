@@ -11,7 +11,11 @@ except ModuleNotFoundError:
     print("cupy not found. numpy is used.")
     import numpy as np
 
-import cudaq 
+try:
+    import cudaq
+except ModuleNotFoundError:
+    print("cudaq not found. numpy is used.")
+
 
 def build_operator_str(p_string):
     array = []
@@ -71,7 +75,7 @@ class PauliObservable(Obs):
             result += QUtil.parity(sample, excludes)
         return self.sign * result / nshot
 
-    def exact_value(self, qc: QWrapper):                                      
+    def exact_value(self, qc: QWrapper):
         if isinstance(qc, QulacsCircuit):
             if self.qulacs_obs is None:
                 self.qulacs_obs = self._build_qulacs_obs()
@@ -170,11 +174,11 @@ class Hamiltonian(Obs):
                 self._cudaq_obs = self._build_cudaq_obs()
             for op in qc.gatesToApply:
                 op(qc.qarg)
-            
+
             if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
                 print("Async exec on qpu {}".format(kwargs['qpu_id']))
                 return cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
-            
+
             return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z()
 
         if isinstance(qc, QulacsCircuit):
@@ -232,14 +236,13 @@ class Hamiltonian(Obs):
         for h, p in zip(self._hs, self._paulis):
             observable.add_operator(h * p.sign, build_operator_str(p.p_string))
         return observable
-    
+
     def _build_cudaq_obs(self):
         observable = cudaq.SpinOperator()
         for h, p in zip(self._hs, self._paulis):
             observable += h * p.sign * cudaq.SpinOperator.from_word(p.p_string)
         return observable - cudaq.SpinOperator()
 
-    
     def __repr__(self) -> str:
         result = ""
         result += ",".join([p.p_string for p in self._paulis])
