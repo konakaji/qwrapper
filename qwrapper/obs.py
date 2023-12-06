@@ -144,6 +144,18 @@ class PauliObservable(Obs):
         return f'{sign_str}{self.p_string}'
 
 
+class Future:
+    def __init__(self, do_get):
+        self.factor = 1
+        self.do_get = do_get
+
+    def get(self):
+        return self.factor * self.do_get()
+
+    def __mul__(self, other):
+        self.factor = self.factor * other
+
+
 class Hamiltonian(Obs):
     def __init__(self, hs, paulis: [PauliObservable], nqubit, identity=0):
         self._hs = hs
@@ -177,7 +189,12 @@ class Hamiltonian(Obs):
 
             if 'parallelObserve' in kwargs and kwargs['parallelObserve']:
                 print("Async exec on qpu {}".format(kwargs['qpu_id']))
-                return cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
+                future = cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
+
+                def do_get():
+                    return future.get().expectation_z()
+
+                return Future(do_get)
 
             return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z()
 
