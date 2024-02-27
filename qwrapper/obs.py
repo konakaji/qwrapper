@@ -194,11 +194,11 @@ class Hamiltonian(Obs):
                 future = cudaq.observe_async(qc.kernel, self._cudaq_obs, qpu_id=kwargs['qpu_id'])
 
                 def do_get():
-                    return future.get().expectation_z()
+                    return future.get().expectation_z() + self._identity
 
                 return Future(do_get)
 
-            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z()
+            return cudaq.observe(qc.kernel, self._cudaq_obs).expectation_z() + self._identity
 
         if isinstance(qc, QulacsCircuit):
             if self._qulacs_obs is None:
