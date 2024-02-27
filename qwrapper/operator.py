@@ -4,6 +4,8 @@ from qulacs.gate import PauliRotation
 
 try:
     import cudaq
+except ImportError: 
+    print("cudaq import error")
 except ModuleNotFoundError:
     print("cudaq not found. numpy is used.")
 
