@@ -19,7 +19,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "qiskit>=0.30.0",
+        "qiskit==0.40.0",
+        "qiskit-aer==0.11.2",
         "Qulacs>=0.5.3",
         "matplotlib>=3.0.0",
         "pylatexenc>=2.0",
