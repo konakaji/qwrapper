@@ -24,7 +24,7 @@ setuptools.setup(
         "Qulacs>=0.5.6",
         "matplotlib>=3.0.0",
         "pylatexenc>=2.0",
-        "qutip>=5.0.2"
+        "qutip==4.7.0"
     ],
     python_requires='>=3.6',
 )
