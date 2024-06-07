@@ -1,6 +1,8 @@
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit import Aer
-from qiskit import execute
+from qiskit_aer import Aer
+from qiskit.providers.basic_provider import BasicSimulator
+from qiskit.primitives import StatevectorSampler as Sampler
+from qiskit.quantum_info import Statevector
 from qulacs import QuantumState, QuantumCircuit as QCircuit
 from qulacs.gate import H, S, Sdag, X, Y, Z, RX, RY, RZ, CNOT, CZ, merge
 from abc import ABC, abstractmethod
@@ -9,7 +11,7 @@ import random, math, numpy as np
 
 try:
     import cudaq
-except ImportError: 
+except ImportError:
     print("cudaq import error")
 except ModuleNotFoundError:
     print("cudaq not found. numpy is used.")
@@ -258,7 +260,7 @@ class QulacsCircuit(QWrapper):
         self.circuit.update_quantum_state(state)
         rs = []
         dictionary = {}
-        for sample in state.sampling(nshot, seed=random.randint(0, 100000)):
+        for sample in state.sampling(nshot, random_seed=random.randint(0, 100000)):
             if sample in dictionary:
                 rs.append(dictionary[sample])
             else:
@@ -272,7 +274,7 @@ class QulacsCircuit(QWrapper):
         self.circuit.update_quantum_state(state)
         r = {}
         n_q = state.get_qubit_count()
-        for sample in state.sampling(nshot, seed=random.randint(0, 100000)):
+        for sample in state.sampling(nshot, random_seed=random.randint(0, 100000)):
             b = self._get_bin(sample, n_q)
             if b not in r:
                 r[b] = 0
@@ -388,13 +390,19 @@ class QiskitCircuit(QWrapper):
             self.qc.rz(theta, index)
 
     def cnot(self, c_index, t_index):
-        self.qc.cnot(c_index, t_index)
+        self.qc.cx(c_index, t_index)
 
     def cy(self, c_index, t_index):
         self.qc.cy(c_index, t_index)
 
     def cz(self, c_index, t_index):
         self.qc.cz(c_index, t_index)
+
+    def get_async_samples(self, nshot):
+        def listener():
+            return self.get_samples(nshot)
+
+        return Future(listener)
 
     def measure_all(self):
         self.qc.measure_all()
@@ -416,33 +424,14 @@ class QiskitCircuit(QWrapper):
         import matplotlib.pyplot as plt
         plt.show()
 
-    def get_async_samples(self, nshot):
-        if self.post_selects is not None:
-            def listener():
-                return self.get_samples(nshot)
-
-            return Future(listener)
-
-        def listener():
-            job = execute(self.qc, backend=Const.simulator, shots=nshot)
-            return self._get_result(job)
-
-        return Future(listener)
-
     def get_samples(self, nshot):
+        self.qc.measure_all(add_bits=False)
+        sampler = Sampler()
+        job = sampler.run([self.qc], shots=nshot)
         results = []
-        while True:
-            samples = self._do_get_samples(nshot)
-            for sample in samples:
-                adopt = True
-                for k, v in self.post_selects.items():
-                    if sample[self.nqubit - k - 1] != v:
-                        adopt = False
-                if not adopt:
-                    continue
-                results.append(from_bitstring(sample))
-                if len(results) == nshot:
-                    return results
+        for value in job.result()[0].data.c0.array:
+            results.append(QiskitCircuit._get_bin(int(value), self.nqubit))
+        return results
 
     def get_counts(self, nshot):
         counter = {}
@@ -454,25 +443,27 @@ class QiskitCircuit(QWrapper):
         return counter
 
     def get_state_vector(self):
-        job = execute(self.qc, backend=Const.s_simulator)
-        vector = job.result().get_statevector()
-        array = []
-        for v in vector:
-            array.append(v)
-        return np.array(self.execute_post_selects(array, self.post_selects, self.nqubit))
+        backend = BasicSimulator()
+        statevector = Statevector(self.qc)
+        return statevector.data
 
-    def _do_get_samples(self, nshot):
-        self.qc.measure_all(add_bits=False)
-        job = execute(self.qc, backend=Const.simulator, shots=nshot)
-        return self._get_result(job)
+    @classmethod
+    def _get_bin(cls, x, n=0):
+        """
+        Get the binary representation of x.
 
-    def _get_result(self, job):
-        result = job.result()
-        samples = []
-        for k, c in result.get_counts().items():
-            samples.extend([k for _ in range(c)])
-        random.shuffle(samples)
-        return samples
+        Parameters
+        ----------
+        x : int
+        n : int
+            Minimum number of digits. If x needs less digits in binary, the rest
+            is filled with zeros.
+
+        Returns
+        -------
+        str
+        """
+        return format(x, 'b').zfill(n)
 
 
 class QulacsGate(QWrapper):
