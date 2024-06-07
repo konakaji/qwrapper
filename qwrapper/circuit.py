@@ -429,7 +429,10 @@ class QiskitCircuit(QWrapper):
         sampler = Sampler()
         job = sampler.run([self.qc], shots=nshot)
         results = []
-        for value in job.result()[0].data.c0.array:
+        data_item = None
+        for item in job.result()[0].data.items():
+            data_item = item
+        for value in data_item[1].array:
             results.append(QiskitCircuit._get_bin(int(value), self.nqubit))
         return results
 
