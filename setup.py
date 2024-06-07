@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     install_requires=[
         "qiskit==1.1.0",
-        "qiskit-aer==0.11.2",
+        "qiskit-aer>=0.11.2",
         "Qulacs>=0.5.6",
         "matplotlib>=3.0.0",
         "pylatexenc>=2.0",
