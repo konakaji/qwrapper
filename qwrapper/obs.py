@@ -1,4 +1,4 @@
-import abc
+import abc, logging
 from abc import abstractmethod
 from qwrapper.circuit import QWrapper
 from qwrapper.util import QUtil
@@ -8,15 +8,13 @@ from qwrapper.circuit import QulacsCircuit, CUDAQuantumCircuit
 try:
     import cupy as np
 except ModuleNotFoundError:
-    print("cupy not found. numpy is used.")
+    logging.debug("cupy not found, numpy is used.")
     import numpy as np
 
 try:
     import cudaq
-except ImportError: 
-    print("cudaq import error")
-except ModuleNotFoundError:
-    print("cudaq not found. numpy is used.")
+except ImportError:
+    logging.debug("cudaq is not imported.")
 
 
 def build_operator_str(p_string):

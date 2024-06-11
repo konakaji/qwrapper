@@ -6,7 +6,7 @@ from qwrapper.operator import ControllablePauli
 try:
     import cupy as np
 except ModuleNotFoundError:
-    print("cupy not found. numpy is used.")
+    logging.debug("cupy not found, numpy is used.")
     import numpy as np
 
 

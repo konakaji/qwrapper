@@ -1,13 +1,12 @@
 from qwrapper.circuit import QWrapper, QulacsCircuit, CUDAQuantumCircuit
 from qwrapper.obs import PauliObservable
 from qulacs.gate import PauliRotation
+import logging
 
 try:
     import cudaq
-except ImportError: 
-    print("cudaq import error")
-except ModuleNotFoundError:
-    print("cudaq not found. numpy is used.")
+except ImportError:
+    logging.debug("cudaq is not imported.")
 
 
 class Operator:

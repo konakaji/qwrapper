@@ -7,14 +7,13 @@ from qulacs import QuantumState, QuantumCircuit as QCircuit
 from qulacs.gate import H, S, Sdag, X, Y, Z, RX, RY, RZ, CNOT, CZ, merge
 from abc import ABC, abstractmethod
 from qwrapper.encoder import Encoder
-import random, math, numpy as np
+import random, math
+import logging
 
 try:
     import cudaq
 except ImportError:
-    print("cudaq import error")
-except ModuleNotFoundError:
-    print("cudaq not found. numpy is used.")
+    logging.debug("cudaq is not imported.")
 
 
 def from_bitstring(str):
