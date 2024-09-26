@@ -1,10 +1,18 @@
 import numpy as np
-
+import torch
 
 class Optimizer(object):
+    def __init__(self, device="cpu"):
+        self.device = device
+        
     def optimize(self, function, init_args):
         pass
-
+    
+    def to_device(self, data):
+        if self.device == 'gpu':
+            return torch.tensor(data).to('cuda')
+        return data
+    
     @classmethod
     def gradient_num_diff(cls, x_center, f, epsilon, recorder=None):
         grad = np.zeros((len(x_center),), float)
@@ -128,4 +136,64 @@ class AdamOptimizer(Optimizer):
     def optimize(self, function, init_args):
         gradient_function = Optimizer.wrap_function(Optimizer.gradient_num_diff, (function, 0.01))
         params_new, t = self.do_optimize(gradient_function, init_args, function)
+        return params_new, function(params_new), t
+
+
+
+
+class AdamOptimizerGPU:
+    def __init__(self, scheduler, maxiter=10000, tol=1e-10, beta_1=0.9, beta_2=0.99, noise_factor=1e-8, eps=1e-10,
+                 monitors=None, device="cpu"):
+        self._maxiter = maxiter
+        self.scheduler = scheduler
+        self.monitors = monitors if monitors is not None else []
+        self._tol = tol
+        self._beta1 = beta_1
+        self._beta2 = beta_2
+        self._noise_factor = noise_factor
+        self._eps = eps
+        self._t = 0
+        self.device = device
+
+    def do_optimize(self, gradient_function, init_args, func=None):
+        params = torch.tensor(init_args, dtype=torch.float32).to(self.device)
+        params_new = params.clone()
+
+        derivative = torch.tensor(gradient_function(params.cpu().numpy()), dtype=torch.float32).to(self.device)
+
+        self._m = torch.zeros_like(derivative)
+        self._v = torch.zeros_like(derivative)
+
+        while self._t < self._maxiter:
+            if func is not None:
+                value = func(params.cpu().numpy())
+                for monitor in self.monitors:
+                    monitor.monitor(self._t, value)
+
+            derivative = torch.tensor(gradient_function(params.cpu().numpy()), dtype=torch.float32).to(self.device)
+
+            self._t += 1
+            self._m = self._beta1 * self._m + (1 - self._beta1) * derivative
+            self._v = self._beta2 * self._v + (1 - self._beta2) * derivative ** 2
+
+            lr_eff = self.scheduler.value(self._t) * torch.sqrt(torch.tensor(1.0).to(self.device) - self._beta2 ** self._t) / (1 - self._beta1 ** self._t)
+
+
+            params_new = params - lr_eff * self._m / (torch.sqrt(self._v) + self._noise_factor)
+
+            if torch.norm(params - params_new) < self._tol:
+                return params_new.cpu().numpy(), self._t
+            else:
+                params = params_new.clone()
+
+        return params_new.cpu().numpy(), self._t
+
+    def optimize(self, function, init_args):
+        def wrapped_function(x):
+            return function(torch.tensor(x, dtype=torch.float32).to(self.device).cpu().numpy())
+
+        gradient_function = lambda x: np.array(torch.autograd.grad(wrapped_function(torch.tensor(x, dtype=torch.float32).to(self.device)), torch.tensor(x, dtype=torch.float32).to(self.device), create_graph=True)[0].cpu())
+
+        params_new, t = self.do_optimize(gradient_function, init_args, function)
+
         return params_new, function(params_new), t
